@@ -26,7 +26,7 @@ export class AppController {
     private readonly s3Service: S3Service
   ) {}
 
-  @Post('/upload')
+  @Post('/uploadFile')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Res() res,
@@ -39,29 +39,49 @@ export class AppController {
       object._id + '.pdf'
     );
     if (result) {
-      await this.fileService.updateById(object._id, result.Location);
-      return res.status(HttpStatus.CREATED).json({
+      await this.fileService.updatePathById(object._id, result.Location);
+      return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
         message: 'Upload File Successfully',
       });
     }
-    return res.status(HttpStatus.CREATED).json({
+    return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
       message: 'Upload File Failed',
     });
   }
 
-  @Post('/delete')
+  @Post('/deleteFile')
   async deleteFile(@Res() res, @Body() body) {
     // const result = await this.s3Service.delete(pdfInfo.name + '.pdf');
+    const result = await this.fileService.deleteFile(body.id);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Deleted File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Deleted File Failed',
+    });
   }
 
-  @Get('/get')
-  async getOwnFiles(@Res() res, @Query('user') userId) {
-    const objects = await this.fileService.getOwnFilesByUserId(userId);
-    return res.status(HttpStatus.CREATED).json({
+  @Get('/getMyFiles')
+  async getOwnFiles(
+    @Res() res,
+    @Query('user') userId,
+    @Query('offset') offset,
+    @Query('sort') sort,
+    @Query('status') status,
+    @Query('keyword') keyword
+  ) {
+    const objects = await this.fileService.getOwnFilesByUserId(userId, offset);
+    return res.status(HttpStatus.OK).json({
       data: {
         data: objects,
       },
@@ -73,12 +93,29 @@ export class AppController {
   @Get('/getXfdf')
   async getFileXfdf(@Res() res, @Query('id') id) {
     const object = await this.fileService.getFileXfdf(id);
-    return res.status(HttpStatus.CREATED).json({
+    return res.status(HttpStatus.OK).json({
       data: {
         xfdf: object.xfdf,
       },
       status: 'true',
       message: 'Get File Successfully',
+    });
+  }
+
+  @Post('/editFile')
+  async editFile(@Res() res, @Body() body) {
+    const result = await this.fileService.updateXfdfById(body.id, body.xfdf);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Update File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Update File Failed',
     });
   }
 }

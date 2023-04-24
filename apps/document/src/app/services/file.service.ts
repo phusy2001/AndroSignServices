@@ -12,25 +12,42 @@ export class FileService {
     return newFile.save();
   }
 
-  async updateById(id: String, filePath: String) {
+  async updatePathById(id: string, filePath: string) {
     return await this.fileModel.findByIdAndUpdate(id, {
       path: filePath,
     });
   }
 
-  async getOwnFilesByUserId(userId: String) {
-    return await this.fileModel.find(
-      {},
-      {
-        _id: 1,
-        name: 1,
-        path: 1,
-        updated_at: 1,
-      }
-    );
+  async getOwnFilesByUserId(userId: string, offset: number) {
+    const numLimit = 10;
+    return await this.fileModel
+      .find(
+        { user: null, deleted: false },
+        {
+          _id: 1,
+          name: 1,
+          path: 1,
+          updated_at: 1,
+        }
+      )
+      .limit(numLimit)
+      .skip((offset - 1) * numLimit)
+      .sort({ updated_at: 'desc' });
   }
 
-  async getFileXfdf(fileId: String) {
+  async getFileXfdf(fileId: string) {
     return await this.fileModel.findById(fileId, 'xfdf');
+  }
+
+  async updateXfdfById(id: string, xfdf: string) {
+    return await this.fileModel.findByIdAndUpdate(id, {
+      xfdf: xfdf,
+    });
+  }
+
+  async deleteFile(id: string) {
+    return await this.fileModel.findByIdAndUpdate(id, {
+      deleted: true,
+    });
   }
 }
