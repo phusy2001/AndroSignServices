@@ -18,21 +18,33 @@ export class FileService {
     });
   }
 
-  async getOwnFilesByUserId(userId: string, offset: number) {
+  async getOwnFilesByUserId(
+    userId: string,
+    offset: number,
+    keyword: string,
+    sort: string,
+    order: string
+  ) {
     const numLimit = 10;
-    return await this.fileModel
-      .find(
-        { user: null, deleted: false },
-        {
-          _id: 1,
-          name: 1,
-          path: 1,
-          updated_at: 1,
-        }
-      )
-      .limit(numLimit)
-      .skip((offset - 1) * numLimit)
-      .sort({ updated_at: 'desc' });
+    const query = this.fileModel.find(
+      { user: userId, deleted: false },
+      {
+        _id: 1,
+        name: 1,
+        path: 1,
+        updated_at: 1,
+      }
+    );
+    if (keyword !== '') query.find({ $text: { $search: keyword } });
+    query.limit(numLimit);
+    query.skip((offset - 1) * numLimit);
+    if (sort === 'updated')
+      query.sort({ updated_at: `${order === 'asc' ? 'asc' : 'desc'}` });
+    else if (sort === 'name')
+      query.sort({ name: `${order === 'asc' ? 'asc' : 'desc'}` });
+    else if (sort === 'created')
+      query.sort({ created_at: `${order === 'asc' ? 'asc' : 'desc'}` });
+    return await query.exec();
   }
 
   async getFileXfdf(fileId: string) {
@@ -42,6 +54,7 @@ export class FileService {
   async updateXfdfById(id: string, xfdf: string) {
     return await this.fileModel.findByIdAndUpdate(id, {
       xfdf: xfdf,
+      updated_at: new Date(),
     });
   }
 
@@ -49,5 +62,33 @@ export class FileService {
     return await this.fileModel.findByIdAndUpdate(id, {
       deleted: true,
     });
+  }
+
+  async addUserToSharedFile(userId: string, fileId: string) {
+    return await this.fileModel.findByIdAndUpdate(fileId, {
+      $addToSet: { sharedTo: userId },
+    });
+  }
+
+  async deleteUserFromSharedFile(userId: string, fileId: string) {
+    return await this.fileModel.findByIdAndUpdate(fileId, {
+      $pull: { sharedTo: userId },
+    });
+  }
+
+  async getFileUserShared(id: string) {
+    return await this.fileModel.findById(id, { sharedTo: 1 });
+  }
+
+  async getFileSharedByUserId(id: string) {
+    return await this.fileModel.find(
+      { sharedTo: id },
+      {
+        _id: 1,
+        name: 1,
+        path: 1,
+        updated_at: 1,
+      }
+    );
   }
 }

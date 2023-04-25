@@ -5,7 +5,6 @@ import {
   Res,
   Body,
   HttpStatus,
-  Req,
   UploadedFile,
   UseInterceptors,
   Query,
@@ -31,9 +30,9 @@ export class AppController {
   async uploadFile(
     @Res() res,
     @UploadedFile() pdfFile: Express.Multer.File,
-    @Body() pdfInfo: File
+    @Body() body: File
   ) {
-    const object = await this.fileService.create(pdfInfo);
+    const object = await this.fileService.create(body);
     const result = await this.s3Service.upload(
       pdfFile.buffer,
       object._id + '.pdf'
@@ -55,7 +54,7 @@ export class AppController {
 
   @Post('/deleteFile')
   async deleteFile(@Res() res, @Body() body) {
-    // const result = await this.s3Service.delete(pdfInfo.name + '.pdf');
+    // const result = await this.s3Service.delete(body.name + '.pdf');
     const result = await this.fileService.deleteFile(body.id);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -78,9 +77,17 @@ export class AppController {
     @Query('offset') offset,
     @Query('sort') sort,
     @Query('status') status,
-    @Query('keyword') keyword
+    @Query('keyword') keyword,
+    @Query('order') order
   ) {
-    const objects = await this.fileService.getOwnFilesByUserId(userId, offset);
+    userId = null;
+    const objects = await this.fileService.getOwnFilesByUserId(
+      userId,
+      offset,
+      keyword,
+      sort,
+      order
+    );
     return res.status(HttpStatus.OK).json({
       data: {
         data: objects,
@@ -116,6 +123,68 @@ export class AppController {
       data: {},
       status: 'false',
       message: 'Update File Failed',
+    });
+  }
+
+  @Post('/addShared')
+  async addUserToSharedFile(@Res() res, @Body() body) {
+    //body.email => Email to be Shared
+    //Find ObjectId of that Email User
+    //body.id => FileId
+    const id = '644783c0af1a55de6da19344';
+    const result = await this.fileService.addUserToSharedFile(id, body.id);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Add User To File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Add User To File Failed',
+    });
+  }
+
+  @Post('/deleteShared')
+  async deleteUserFromSharedFile(@Res() res, @Body() body) {
+    const result = await this.fileService.deleteUserFromSharedFile(
+      body.userId,
+      body.fileId
+    );
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Delete User From File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Delete User From File Failed',
+    });
+  }
+
+  @Get('/getUserShared')
+  async getFileUserShared(@Res() res, @Query('id') fileId) {
+    const objects = await this.fileService.getFileUserShared(fileId);
+    //objects.sharedTo references to UserId (Send Id => Get Email and Username)
+    return res.status(HttpStatus.OK).json({
+      data: objects,
+      status: 'true',
+      message: 'Get User File Shared Successfully',
+    });
+  }
+
+  @Get('/getFileShared')
+  async getFileShared(@Res() res, @Query('id') userId) {
+    const objects = await this.fileService.getFileSharedByUserId(userId);
+    return res.status(HttpStatus.OK).json({
+      data: objects,
+      status: 'true',
+      message: 'Get User File Shared Successfully',
     });
   }
 }
