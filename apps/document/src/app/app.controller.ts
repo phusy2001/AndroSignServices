@@ -131,7 +131,7 @@ export class AppController {
     //body.email => Email to be Shared
     //Find ObjectId of that Email User
     //body.id => FileId
-    const id = '644783c0af1a55de6da19344';
+    const id = '644783c0af1a55de6da19347';
     const result = await this.fileService.addUserToSharedFile(id, body.id);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -168,8 +168,12 @@ export class AppController {
   }
 
   @Get('/getUserShared')
-  async getFileUserShared(@Res() res, @Query('id') fileId) {
-    const objects = await this.fileService.getFileUserShared(fileId);
+  async getFileUserShared(
+    @Res() res,
+    @Query('id') fileId,
+    @Query('offset') offset
+  ) {
+    const objects = await this.fileService.getFileUserShared(fileId, offset);
     //objects.sharedTo references to UserId (Send Id => Get Email and Username)
     return res.status(HttpStatus.OK).json({
       data: objects,

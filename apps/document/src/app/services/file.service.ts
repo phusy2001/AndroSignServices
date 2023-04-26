@@ -76,8 +76,11 @@ export class FileService {
     });
   }
 
-  async getFileUserShared(id: string) {
-    return await this.fileModel.findById(id, { sharedTo: 1 });
+  async getFileUserShared(id: string, offset: number) {
+    const numLimit = 10;
+    return await this.fileModel.findById(id, {
+      sharedTo: { $slice: [(offset - 1) * numLimit, numLimit] },
+    });
   }
 
   async getFileSharedByUserId(id: string) {
