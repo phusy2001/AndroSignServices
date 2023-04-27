@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { File, FileDocument } from '../schemas/file.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId } from 'mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class FileService {
@@ -28,12 +28,7 @@ export class FileService {
     const numLimit = 10;
     const query = this.fileModel.find(
       { user: userId, deleted: false },
-      {
-        _id: 1,
-        name: 1,
-        path: 1,
-        updated_at: 1,
-      }
+      { _id: 1, name: 1, path: 1, updated_at: 1 }
     );
     if (keyword !== '') query.find({ $text: { $search: keyword } });
     query.limit(numLimit);
@@ -86,12 +81,25 @@ export class FileService {
   async getFileSharedByUserId(id: string) {
     return await this.fileModel.find(
       { sharedTo: id },
-      {
+      { _id: 1, name: 1, path: 1, updated_at: 1 }
+    );
+  }
+
+  async getFilesByIdArray(idArr: Array<string>, userId: string) {
+    return await this.fileModel
+      .find({ _id: { $in: idArr }, deleted: false })
+      .select({
+        fileOwner: {
+          $cond: {
+            if: { $eq: ['$user', userId] },
+            then: true,
+            else: false,
+          },
+        },
         _id: 1,
         name: 1,
         path: 1,
         updated_at: 1,
-      }
-    );
+      });
   }
 }

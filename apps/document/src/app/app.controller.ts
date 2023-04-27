@@ -16,12 +16,14 @@ import { AppService } from './app.service';
 import { FileService } from './services/file.service';
 import { File } from './schemas/file.schema';
 import { S3Service } from './services/s3.service';
+import { FolderService } from './services/folder.service';
 
 @Controller()
 export class AppController {
   constructor(
     private readonly appService: AppService,
     private readonly fileService: FileService,
+    private readonly folderService: FolderService,
     private readonly s3Service: S3Service
   ) {}
 
@@ -73,14 +75,13 @@ export class AppController {
   @Get('/getMyFiles')
   async getOwnFiles(
     @Res() res,
-    @Query('user') userId,
     @Query('offset') offset,
     @Query('sort') sort,
     @Query('status') status,
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    userId = null;
+    const userId = null;
     const objects = await this.fileService.getOwnFilesByUserId(
       userId,
       offset,
@@ -183,12 +184,94 @@ export class AppController {
   }
 
   @Get('/getFileShared')
-  async getFileShared(@Res() res, @Query('id') userId) {
+  async getFileShared(@Res() res) {
+    const userId = null;
     const objects = await this.fileService.getFileSharedByUserId(userId);
     return res.status(HttpStatus.OK).json({
       data: objects,
       status: 'true',
       message: 'Get User File Shared Successfully',
+    });
+  }
+
+  @Post('/createFolder')
+  async createFolder(@Res() res, @Body() body) {
+    const result = await this.folderService.create(body);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Create Folder Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Create Folder Failed',
+    });
+  }
+
+  @Get('/getFolders')
+  async getFolders(
+    @Res() res,
+    @Query('offset') offset,
+    @Query('sort') sort,
+    @Query('keyword') keyword,
+    @Query('order') order
+  ) {
+    const userId = null;
+    const objects = await this.folderService.getFoldersByUserId(
+      userId,
+      offset,
+      keyword,
+      sort,
+      order
+    );
+    return res.status(HttpStatus.OK).json({
+      data: {
+        data: objects,
+      },
+      status: 'true',
+      message: 'Get Folders Successfully',
+    });
+  }
+
+  @Post('/deleteFolder')
+  async deleteFolder(@Res() res, @Body() body) {
+    const result = await this.folderService.deleteFolder(body.id);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Delete Folder Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Delete Folder Failed',
+    });
+  }
+
+  @Get('/getFilesInFolder')
+  async getFilesInFolder(
+    @Res() res,
+    @Query('id') folderId,
+    @Query('offset') offset
+  ) {
+    const userId = null;
+    const result = await this.folderService.getFilesIdByFolderId(
+      folderId,
+      offset
+    );
+    const objects = await this.fileService.getFilesByIdArray(
+      result.files,
+      userId
+    );
+    return res.status(HttpStatus.OK).json({
+      data: { data: objects },
+      status: 'true',
+      message: 'Get Files In Folder Successfully',
     });
   }
 }

@@ -6,6 +6,8 @@ import { ConfigModule } from '@nestjs/config';
 import { File, FileSchema } from './schemas/file.schema';
 import { FileService } from './services/file.service';
 import { S3Service } from './services/s3.service';
+import { FolderService } from './services/folder.service';
+import { Folder, FolderSchema } from './schemas/folder.schema';
 
 @Module({
   imports: [
@@ -14,8 +16,9 @@ import { S3Service } from './services/s3.service';
       dbName: 'DocumentService',
     }),
     MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
+    MongooseModule.forFeature([{ name: Folder.name, schema: FolderSchema }]),
   ],
   controllers: [AppController],
-  providers: [AppService, FileService, S3Service],
+  providers: [AppService, FileService, S3Service, FolderService],
 })
 export class AppModule {}
