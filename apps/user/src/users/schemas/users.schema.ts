@@ -22,6 +22,9 @@ export class User {
   @Prop({ default: 'customer' })
   role: Role;
 
+  @Prop([String])
+  fcmTokens: string[];
+
   @Prop({ default: now() })
   createdAt: Date;
 

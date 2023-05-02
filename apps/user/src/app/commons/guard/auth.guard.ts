@@ -5,13 +5,16 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import admin from 'apps/auth/src/config/firebase';
+import admin from '../../config/firebase';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
+    console.log(request);
+
     const token = request.headers.authorization.split(' ')[1];
+    console.log('token', token);
 
     try {
       const decodeValue = await admin.auth().verifyIdToken(token);
