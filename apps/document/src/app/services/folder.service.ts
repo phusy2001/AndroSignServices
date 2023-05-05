@@ -52,4 +52,39 @@ export class FolderService {
       files: { $slice: [(offset - 1) * numLimit, numLimit] },
     });
   }
+
+  async checkFileInFolder(fileId: string, folderId: string) {
+    return await this.folderModel.exists({ _id: folderId, files: fileId });
+  }
+
+  async addFileToFolder(fileId: string, folderId: string) {
+    return await this.folderModel.findByIdAndUpdate(folderId, {
+      $addToSet: { files: fileId },
+    });
+  }
+
+  async removeFileFromFolder(fileId: string, folderId: string) {
+    return await this.folderModel.findByIdAndUpdate(folderId, {
+      $pull: { files: fileId },
+    });
+  }
+
+  async getFolderListOfFile(fileId: string, offset: number) {
+    const numLimit = 10;
+    return await this.folderModel
+      .find()
+      .select({
+        isStored: {
+          $cond: {
+            if: { $in: [fileId, '$files'] },
+            then: true,
+            else: false,
+          },
+        },
+        _id: 1,
+        name: 1,
+      })
+      .limit(numLimit)
+      .skip((offset - 1) * numLimit);
+  }
 }

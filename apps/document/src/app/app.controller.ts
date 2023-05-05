@@ -274,4 +274,53 @@ export class AppController {
       message: 'Get Files In Folder Successfully',
     });
   }
+
+  @Post('/updateFileInFolder')
+  async updateFileInFolder(@Res() res, @Body() body) {
+    const checkExisted = await this.folderService.checkFileInFolder(
+      body.fileId,
+      body.folderId
+    );
+    let result = {};
+    if (checkExisted)
+      result = await this.folderService.removeFileFromFolder(
+        body.fileId,
+        body.folderId
+      );
+    else
+      result = await this.folderService.addFileToFolder(
+        body.fileId,
+        body.folderId
+      );
+    if (result)
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Update File In Folder Successfully',
+      });
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Update File In Folder Failed',
+    });
+  }
+
+  @Get('/getFolderListOfFile')
+  async getFolderListOfFile(
+    @Res() res,
+    @Query('id') fileId,
+    @Query('offset') offset
+  ) {
+    const objects = await this.folderService.getFolderListOfFile(
+      fileId,
+      offset
+    );
+    return res.status(HttpStatus.OK).json({
+      data: {
+        data: objects,
+      },
+      status: 'true',
+      message: 'Get Folder List Successfully',
+    });
+  }
 }
