@@ -1,7 +1,7 @@
 {
-  "name": "auth",
+  "name": "notification",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "apps/auth/src",
+  "sourceRoot": "apps/notification/src",
   "projectType": "application",
   "targets": {
     "build": {
@@ -10,12 +10,12 @@
       "options": {
         "target": "node",
         "compiler": "tsc",
-        "outputPath": "dist/apps/auth",
-        "main": "apps/auth/src/main.ts",
-        "tsConfig": "apps/auth/tsconfig.app.json",
-        "assets": ["apps/auth/src/assets"],
+        "outputPath": "dist/apps/notification",
+        "main": "apps/notification/src/main.ts",
+        "tsConfig": "apps/notification/tsconfig.app.json",
+        "assets": ["apps/notification/src/assets"],
         "isolatedConfig": true,
-        "webpackConfig": "apps/auth/webpack.config.js"
+        "webpackConfig": "apps/notification/webpack.config.js"
       },
       "configurations": {
         "production": {
@@ -28,11 +28,11 @@
     "serve": {
       "executor": "@nrwl/js:node",
       "options": {
-        "buildTarget": "auth:build"
+        "buildTarget": "notification:build"
       },
       "configurations": {
         "production": {
-          "buildTarget": "auth:build:production"
+          "buildTarget": "notification:build:production"
         }
       }
     },
@@ -40,14 +40,14 @@
       "executor": "@nrwl/linter:eslint",
       "outputs": ["{options.outputFile}"],
       "options": {
-        "lintFilePatterns": ["apps/auth/**/*.ts"]
+        "lintFilePatterns": ["apps/notification/**/*.ts"]
       }
     },
     "test": {
       "executor": "@nrwl/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/auth/jest.config.ts",
+        "jestConfig": "apps/notification/jest.config.ts",
         "passWithNoTests": true
       },
       "configurations": {

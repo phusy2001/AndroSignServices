@@ -12,9 +12,12 @@ import { Folder, FolderSchema } from './schemas/folder.schema';
 @Module({
   imports: [
     ConfigModule.forRoot(),
-    MongooseModule.forRoot(process.env.MONGODB_URI, {
-      dbName: 'DocumentService',
-    }),
+    MongooseModule.forRoot(
+      `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_HOST}/?${process.env.MONGODB_OPTIONS}`,
+      {
+        dbName: 'DocumentService',
+      }
+    ),
     MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
     MongooseModule.forFeature([{ name: Folder.name, schema: FolderSchema }]),
   ],
