@@ -12,7 +12,7 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [
-        `amqps://${configService.get<string>(
+        `amqp://${configService.get<string>(
           'RABBITMQ_USER'
         )}:${configService.get<string>(
           'RABBITMQ_PASSWORD'
