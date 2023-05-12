@@ -8,21 +8,29 @@ export class File {
   _id: string;
   @Prop({ required: true })
   name: string;
-  @Prop({ default: null })
-  user: ObjectId;
+  @Prop({ default: 'null' })
+  user: string;
   @Prop({ default: null })
   path: string;
   @Prop({ default: null })
   xfdf: Buffer;
   @Prop({ default: false })
   deleted: Boolean;
-  @Prop({ default: false })
-  starred: Boolean;
+  @Prop({ default: [] })
+  starred: Array<string>;
   @Prop({ default: [] })
   sharedTo: Array<string>;
-  @Prop({ default: new Date() })
+  @Prop({
+    default: () => {
+      return new Date();
+    },
+  })
   created_at: Date;
-  @Prop({ default: new Date() })
+  @Prop({
+    default: () => {
+      return new Date();
+    },
+  })
   updated_at: Date;
 }
 

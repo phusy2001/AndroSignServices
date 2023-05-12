@@ -8,13 +8,21 @@ export class Folder {
   _id: string;
   @Prop({ required: true })
   name: string;
-  @Prop({ default: null })
-  user: ObjectId;
+  @Prop({ default: 'null' })
+  user: string;
   @Prop({ default: [] })
   files: Array<string>;
-  @Prop({ default: new Date() })
+  @Prop({
+    default: () => {
+      return new Date();
+    },
+  })
   created_at: Date;
-  @Prop({ default: new Date() })
+  @Prop({
+    default: () => {
+      return new Date();
+    },
+  })
   updated_at: Date;
 }
 

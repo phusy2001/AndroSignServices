@@ -26,10 +26,19 @@ export class FileService {
     order: string
   ) {
     const numLimit = 10;
-    const query = this.fileModel.find(
-      { user: userId, deleted: false },
-      { _id: 1, name: 1, path: 1, updated_at: 1 }
-    );
+    const query = this.fileModel.find({ user: userId, deleted: false }).select({
+      fileStarred: {
+        $cond: {
+          if: { $in: [userId, '$starred'] },
+          then: true,
+          else: false,
+        },
+      },
+      _id: 1,
+      name: 1,
+      path: 1,
+      updated_at: 1,
+    });
     if (keyword !== '') query.find({ $text: { $search: keyword } });
     query.limit(numLimit);
     query.skip((offset - 1) * numLimit);
@@ -78,11 +87,12 @@ export class FileService {
     });
   }
 
-  async getFileSharedByUserId(id: string) {
-    return await this.fileModel.find(
-      { sharedTo: id },
-      { _id: 1, name: 1, path: 1, updated_at: 1 }
-    );
+  async getFileSharedByUserId(id: string, offset?: number) {
+    const numLimit = 10;
+    return await this.fileModel
+      .find({ sharedTo: id }, { _id: 1, name: 1, path: 1, updated_at: 1 })
+      .limit(numLimit)
+      .skip((offset - 1) * numLimit);
   }
 
   async getFilesByIdArray(idArr: Array<string>, userId: string) {
@@ -96,10 +106,62 @@ export class FileService {
             else: false,
           },
         },
+        fileStarred: {
+          $cond: {
+            if: { $in: [userId, '$starred'] },
+            then: true,
+            else: false,
+          },
+        },
         _id: 1,
         name: 1,
         path: 1,
         updated_at: 1,
       });
+  }
+
+  async markFile(fileId: string, userId: string) {
+    return await this.fileModel.findByIdAndUpdate(fileId, {
+      $addToSet: { starred: userId },
+    });
+  }
+
+  async unmarkFile(fileId: string, userId: string) {
+    return await this.fileModel.findByIdAndUpdate(fileId, {
+      $pull: { starred: userId },
+    });
+  }
+
+  async getStarredFiles(
+    userId: string,
+    offset: number,
+    keyword: string,
+    sort: string,
+    order: string
+  ) {
+    const numLimit = 10;
+    const query = this.fileModel.find({ starred: userId }).select({
+      fileOwner: {
+        $cond: {
+          if: { $eq: ['$user', userId] },
+          then: true,
+          else: false,
+        },
+      },
+      _id: 1,
+      name: 1,
+      path: 1,
+      updated_at: 1,
+    });
+    if (keyword !== '') query.find({ $text: { $search: keyword } });
+    query.limit(numLimit);
+    query.skip((offset - 1) * numLimit);
+    if (sort === 'updated')
+      query.sort({ updated_at: `${order === 'asc' ? 'asc' : 'desc'}` });
+    else if (sort === 'name')
+      query.sort({ name: `${order === 'asc' ? 'asc' : 'desc'}` });
+    else if (sort === 'created')
+      query.sort({ created_at: `${order === 'asc' ? 'asc' : 'desc'}` });
+    return await query.exec();
   }
 }

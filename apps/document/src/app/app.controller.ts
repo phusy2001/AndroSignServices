@@ -81,7 +81,7 @@ export class AppController {
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    const userId = null;
+    const userId = 'null';
     const objects = await this.fileService.getOwnFilesByUserId(
       userId,
       offset,
@@ -185,7 +185,7 @@ export class AppController {
 
   @Get('/getFileShared')
   async getFileShared(@Res() res) {
-    const userId = null;
+    const userId = 'null';
     const objects = await this.fileService.getFileSharedByUserId(userId);
     return res.status(HttpStatus.OK).json({
       data: objects,
@@ -219,7 +219,7 @@ export class AppController {
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    const userId = null;
+    const userId = 'null';
     const objects = await this.folderService.getFoldersByUserId(
       userId,
       offset,
@@ -259,7 +259,7 @@ export class AppController {
     @Query('id') folderId,
     @Query('offset') offset
   ) {
-    const userId = null;
+    const userId = 'null';
     const result = await this.folderService.getFilesIdByFolderId(
       folderId,
       offset
@@ -321,6 +321,67 @@ export class AppController {
       },
       status: 'true',
       message: 'Get Folder List Successfully',
+    });
+  }
+
+  @Post('/markFile')
+  async markFile(@Res() res, @Body() body) {
+    const userId = 'null';
+    const result = await this.fileService.markFile(body.id, userId);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Mark File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Mark File Failed',
+    });
+  }
+
+  @Post('/unmarkFile')
+  async unmarkFile(@Res() res, @Body() body) {
+    const userId = 'null';
+    const result = await this.fileService.unmarkFile(body.id, userId);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Unmark File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Unmark File Failed',
+    });
+  }
+
+  @Get('/getStarredFiles')
+  async getStarredFiles(
+    @Res() res,
+    @Query('offset') offset,
+    @Query('sort') sort,
+    @Query('keyword') keyword,
+    @Query('order') order
+  ) {
+    const userId = 'null';
+    const objects = await this.fileService.getStarredFiles(
+      userId,
+      offset,
+      keyword,
+      sort,
+      order
+    );
+    return res.status(HttpStatus.OK).json({
+      data: {
+        data: objects,
+      },
+      status: 'true',
+      message: 'Get Starred Files Successfully',
     });
   }
 }
