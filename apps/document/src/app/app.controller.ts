@@ -183,12 +183,27 @@ export class AppController {
     });
   }
 
-  @Get('/getFileShared')
-  async getFileShared(@Res() res) {
+  @Get('/getFilesShared')
+  async getFilesShared(
+    @Res() res,
+    @Query('offset') offset,
+    @Query('sort') sort,
+    @Query('status') status,
+    @Query('keyword') keyword,
+    @Query('order') order
+  ) {
     const userId = 'null';
-    const objects = await this.fileService.getFileSharedByUserId(userId);
+    const objects = await this.fileService.getFilesSharedByUserId(
+      userId,
+      offset,
+      keyword,
+      sort,
+      order
+    );
     return res.status(HttpStatus.OK).json({
-      data: objects,
+      data: {
+        data: objects,
+      },
       status: 'true',
       message: 'Get User File Shared Successfully',
     });
@@ -382,6 +397,48 @@ export class AppController {
       },
       status: 'true',
       message: 'Get Starred Files Successfully',
+    });
+  }
+
+  @Get('/getDeletedFiles')
+  async getDeletedFiles(
+    @Res() res,
+    @Query('offset') offset,
+    @Query('sort') sort,
+    @Query('keyword') keyword,
+    @Query('order') order
+  ) {
+    const userId = 'null';
+    const objects = await this.fileService.getDeletedFiles(
+      userId,
+      offset,
+      keyword,
+      sort,
+      order
+    );
+    return res.status(HttpStatus.OK).json({
+      data: {
+        data: objects,
+      },
+      status: 'true',
+      message: 'Get Deleted Files Successfully',
+    });
+  }
+
+  @Post('/restoreFile')
+  async restoreFile(@Res() res, @Body() body) {
+    const result = await this.fileService.restoreFile(body.id);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Restore File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Restore File Failed',
     });
   }
 }
