@@ -29,8 +29,39 @@ export class UsersController {
 
   @Get(':id')
   @UseGuards(AuthGuard)
-  find(@Param('id') uid: string) {
-    return this.usersService.find(uid);
+  async find(@Param('id') id: string) {
+    const user = await this.usersService.find(id);
+
+    if (user) {
+      return {
+        data: user,
+        status: 'true',
+        message: 'Lấy người dùng bằng Id thành công',
+      };
+    }
+
+    return {
+      data: {},
+      status: 'false',
+      message: 'Lấy người dùng bằng Id thất bại',
+    };
+  }
+
+  @Get('email/:email')
+  @UseGuards(AuthGuard)
+  async findByEmail(@Param('email') email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (user)
+      return {
+        data: user,
+        status: 'true',
+        message: 'Get User By Email Successfully.',
+      };
+    return {
+      data: {},
+      status: 'false',
+      message: 'Get User By Email Failed.',
+    };
   }
 
   @Put(':id')
