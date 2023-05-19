@@ -13,6 +13,9 @@ export class User {
   @Prop()
   displayName: string;
 
+  @Prop()
+  uid: string;
+
   @Prop({ unique: true })
   email: string;
 
