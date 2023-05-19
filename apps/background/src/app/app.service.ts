@@ -3,13 +3,12 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class AppService {
-  constructor(
-    // @Inject('UserToken')
-    // private userTokenModel: Model<UserToken>
-  ) {}
+  constructor() // @Inject('UserToken')
+  // private userTokenModel: Model<UserToken>
+  {}
 
   getData(): { message: string } {
-    return { message: 'Welcome to notification!' };
+    return { message: 'Welcome to background!' };
   }
 
   // async createFCMToken(data: string) {

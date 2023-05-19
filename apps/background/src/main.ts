@@ -19,7 +19,7 @@ async function bootstrap() {
           'RABBITMQ_PASSWORD'
         )}@${configService.get<string>('RABBITMQ_HOST')}`,
       ],
-      queue: 'notification_queue',
+      queue: 'background_queue',
       noAck: false,
       queueOptions: {
         durable: true,
@@ -41,7 +41,7 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
   await app.listen(
-    configService.get<string>('NOTIFICATION_SERVICE_PORT') || 3003
+    configService.get<string>('BACKGROUND_SERVICE_PORT') || 3003
   );
 }
 bootstrap();
