@@ -1,34 +1,30 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Param, Post } from '@nestjs/common';
 import { OrdersService } from './orders.service';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-
 @Controller('orders')
 export class OrdersController {
+  private readonly config = {
+    key2: 'eG4r0GcoNtRGbO8',
+  };
+
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Body() createOrderDto: CreateOrderDto) {
-    return this.ordersService.create(createOrderDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.ordersService.findAll();
+  async createOrder() {
+    try {
+      const order = await this.ordersService.create();
+      return order.data;
+    } catch (error) {
+      return error;
+    }
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-    return this.ordersService.update(+id, updateOrderDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.ordersService.remove(+id);
+  async getStatus(@Param('id') app_trans_id: string) {
+    try {
+      const status = await this.ordersService.getStatus(app_trans_id);
+      return JSON.stringify(status.data);
+    } catch (error) {
+      return error;
+    }
   }
 }
