@@ -69,10 +69,10 @@ export class FolderService {
     });
   }
 
-  async getFolderListOfFile(fileId: string, offset: number) {
+  async getFolderListOfFile(fileId: string, offset: number, userId: string) {
     const numLimit = 10;
     return await this.folderModel
-      .find()
+      .find({ user: userId })
       .select({
         isStored: {
           $cond: {

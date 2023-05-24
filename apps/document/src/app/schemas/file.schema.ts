@@ -16,6 +16,12 @@ export class File {
   xfdf: Buffer;
   @Prop({ default: false })
   deleted: Boolean;
+  @Prop({ default: 0 })
+  signed: number;
+  @Prop({ default: 0 })
+  total: number;
+  @Prop({ default: false })
+  completed: Boolean;
   @Prop({ default: [] })
   starred: Array<string>;
   @Prop({ default: [] })

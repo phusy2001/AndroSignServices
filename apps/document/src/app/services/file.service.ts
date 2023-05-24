@@ -55,10 +55,19 @@ export class FileService {
     return await this.fileModel.findById(fileId, 'xfdf');
   }
 
-  async updateXfdfById(id: string, xfdf: string) {
+  async updateXfdfById(
+    id: string,
+    xfdf: string,
+    signed: number,
+    total: number,
+    completed: Boolean
+  ) {
     return await this.fileModel.findByIdAndUpdate(id, {
       xfdf: xfdf,
       updated_at: new Date(),
+      signed: signed,
+      total: total,
+      completed: completed,
     });
   }
 

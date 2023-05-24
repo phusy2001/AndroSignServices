@@ -8,6 +8,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
@@ -17,8 +18,11 @@ import { FileService } from './services/file.service';
 import { File } from './schemas/file.schema';
 import { S3Service } from './services/s3.service';
 import { FolderService } from './services/folder.service';
+import { AuthGuard } from './commons/guard/auth.guard';
+import { UserId } from './commons/decorator/userid.decorator';
 
 @Controller()
+@UseGuards(AuthGuard)
 export class AppController {
   constructor(
     private readonly appService: AppService,
@@ -75,13 +79,14 @@ export class AppController {
   @Get('/getMyFiles')
   async getOwnFiles(
     @Res() res,
+    @UserId() userId,
     @Query('offset') offset,
     @Query('sort') sort,
     @Query('status') status,
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    const userId = 'null';
+    // const userId = 'null';
     const objects = await this.fileService.getOwnFilesByUserId(
       userId,
       offset,
@@ -112,7 +117,13 @@ export class AppController {
 
   @Post('/editFile')
   async editFile(@Res() res, @Body() body) {
-    const result = await this.fileService.updateXfdfById(body.id, body.xfdf);
+    const result = await this.fileService.updateXfdfById(
+      body.id,
+      body.xfdf,
+      body.signed,
+      body.total,
+      body.completed
+    );
     if (result) {
       return res.status(HttpStatus.OK).json({
         data: {},
@@ -132,8 +143,8 @@ export class AppController {
     //body.email => Email to be Shared
     //Find ObjectId of that Email User
     //body.id => FileId
-    const id = '644783c0af1a55de6da19347';
-    const result = await this.fileService.addUserToSharedFile(id, body.id);
+    const userId = '644783c0af1a55de6da19347';
+    const result = await this.fileService.addUserToSharedFile(userId, body.id);
     if (result) {
       return res.status(HttpStatus.OK).json({
         data: {},
@@ -186,13 +197,14 @@ export class AppController {
   @Get('/getFilesShared')
   async getFilesShared(
     @Res() res,
+    @UserId() userId,
     @Query('offset') offset,
     @Query('sort') sort,
     @Query('status') status,
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    const userId = 'null';
+    // const userId = 'null';
     const objects = await this.fileService.getFilesSharedByUserId(
       userId,
       offset,
@@ -229,12 +241,13 @@ export class AppController {
   @Get('/getFolders')
   async getFolders(
     @Res() res,
+    @UserId() userId,
     @Query('offset') offset,
     @Query('sort') sort,
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    const userId = 'null';
+    // const userId = 'null';
     const objects = await this.folderService.getFoldersByUserId(
       userId,
       offset,
@@ -271,10 +284,11 @@ export class AppController {
   @Get('/getFilesInFolder')
   async getFilesInFolder(
     @Res() res,
+    @UserId() userId,
     @Query('id') folderId,
     @Query('offset') offset
   ) {
-    const userId = 'null';
+    // const userId = 'null';
     const result = await this.folderService.getFilesIdByFolderId(
       folderId,
       offset
@@ -323,12 +337,14 @@ export class AppController {
   @Get('/getFolderListOfFile')
   async getFolderListOfFile(
     @Res() res,
+    @UserId() userId,
     @Query('id') fileId,
     @Query('offset') offset
   ) {
     const objects = await this.folderService.getFolderListOfFile(
       fileId,
-      offset
+      offset,
+      userId
     );
     return res.status(HttpStatus.OK).json({
       data: {
@@ -340,8 +356,8 @@ export class AppController {
   }
 
   @Post('/markFile')
-  async markFile(@Res() res, @Body() body) {
-    const userId = 'null';
+  async markFile(@Res() res, @UserId() userId, @Body() body) {
+    // const userId = 'null';
     const result = await this.fileService.markFile(body.id, userId);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -358,8 +374,8 @@ export class AppController {
   }
 
   @Post('/unmarkFile')
-  async unmarkFile(@Res() res, @Body() body) {
-    const userId = 'null';
+  async unmarkFile(@Res() res, @UserId() userId, @Body() body) {
+    // const userId = 'null';
     const result = await this.fileService.unmarkFile(body.id, userId);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -378,12 +394,13 @@ export class AppController {
   @Get('/getStarredFiles')
   async getStarredFiles(
     @Res() res,
+    @UserId() userId,
     @Query('offset') offset,
     @Query('sort') sort,
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    const userId = 'null';
+    // const userId = 'null';
     const objects = await this.fileService.getStarredFiles(
       userId,
       offset,
@@ -403,12 +420,13 @@ export class AppController {
   @Get('/getDeletedFiles')
   async getDeletedFiles(
     @Res() res,
+    @UserId() userId,
     @Query('offset') offset,
     @Query('sort') sort,
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    const userId = 'null';
+    // const userId = 'null';
     const objects = await this.fileService.getDeletedFiles(
       userId,
       offset,
