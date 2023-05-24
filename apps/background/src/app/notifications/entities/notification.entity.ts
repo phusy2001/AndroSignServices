@@ -4,6 +4,12 @@ import { Document } from 'mongoose';
 @Schema()
 export class Notification extends Document {
   @Prop({ required: true })
+  message_id: string;
+
+  @Prop({ required: true })
+  trans_id: string;
+
+  @Prop({ required: true })
   title: string;
 
   @Prop({ required: true })

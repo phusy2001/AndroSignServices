@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -16,8 +16,16 @@ export class UsersService {
     return this.userModel.find().exec();
   }
 
-  find(uid: string) {
-    return this.userModel.findOne({ uid });
+  async find(uid: string) {
+    return await this.userModel
+      .findOne({ uid })
+      .select({ displayName: 1, email: 1 });
+  }
+
+  async findByEmail(email: string) {
+    return await this.userModel
+      .findOne({ email })
+      .select({ displayName: 1, uid: 1 });
   }
 
   update(uid: string, dto: UpdateUserDto) {
