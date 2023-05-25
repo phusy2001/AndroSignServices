@@ -1,3 +1,4 @@
+import { MessagePattern } from '@nestjs/microservices';
 import {
   Controller,
   Get,
@@ -74,23 +75,6 @@ export class UsersController {
       data: {},
       status: 'false',
       message: `Lấy người dùng với id ${uid} thất bại`,
-    };
-  }
-
-  @Get('email/:email')
-  @UseGuards(AuthGuard)
-  async findByEmail(@Param('email') email: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (user)
-      return {
-        data: user,
-        status: 'true',
-        message: 'Lấy người dùng bằng email thành công.',
-      };
-    return {
-      data: {},
-      status: 'false',
-      message: 'Lấy người dùng bằng email thất bại',
     };
   }
 
@@ -184,5 +168,41 @@ export class UsersController {
         message: `Người dùng với ${uid} đã mở lại`,
       };
     }
+  }
+
+  // Microservice
+  @MessagePattern('get_users_from_list_uid')
+  async findByListUid(uidList: [string]) {
+    const result = await this.usersService.findByListUid(uidList);
+
+    if (result.length > 0) {
+      return {
+        data: result,
+        status: 'true',
+        message: 'Lấy danh sách người dùng từ danh sách uid thành công',
+      };
+    }
+
+    return {
+      data: {},
+      status: 'false',
+      message: 'Lấy danh sách người dùng từ danh sách uid thất bại',
+    };
+  }
+
+  @MessagePattern('get_user_by_email')
+  async findByEmail(email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (user)
+      return {
+        data: user,
+        status: 'true',
+        message: 'Lấy người dùng bằng email thành công.',
+      };
+    return {
+      data: {},
+      status: 'false',
+      message: 'Lấy người dùng bằng email thất bại',
+    };
   }
 }
