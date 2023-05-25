@@ -12,7 +12,7 @@ export class OrdersController {
   async createOrder() {
     try {
       const order = await this.ordersService.create();
-      return order.data;
+      return { data: order.data };
     } catch (error) {
       return error;
     }

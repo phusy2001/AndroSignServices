@@ -38,8 +38,8 @@ export class OrdersService {
       app_time: Date.now(), // miliseconds
       item: JSON.stringify(items),
       embed_data: JSON.stringify(embed_data),
-      amount: 50000,
-      description: `Lazada - Payment for the order #${transID}`,
+      amount: 33000,
+      description: `Gói 1 tháng - Payment for the order #${transID}`,
       bank_code: 'zalopayapp',
       mac: '',
     };
