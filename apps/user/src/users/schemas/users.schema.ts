@@ -11,7 +11,7 @@ export enum Role {
 @Schema()
 export class User {
   @Prop()
-  displayName: string;
+  display_name: string;
 
   @Prop()
   uid: string;
@@ -20,19 +20,19 @@ export class User {
   email: string;
 
   @Prop({ required: false })
-  phoneNumber: string;
+  phone_number: string;
 
   @Prop({ default: 'customer' })
   role: Role;
 
   @Prop([String])
-  fcmTokens: string[];
+  fcm_tokens: string[];
 
   @Prop({ default: now() })
-  createdAt: Date;
+  created_at: Date;
 
   @Prop({ default: now() })
-  updatedAt: Date;
+  updated_at: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

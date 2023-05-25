@@ -1,8 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schemas/users.schema';
+import { auth } from 'firebase-admin';
+import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 
 @Injectable()
 export class UsersService {
@@ -16,16 +18,12 @@ export class UsersService {
     return this.userModel.find().exec();
   }
 
-  async find(uid: string) {
-    return await this.userModel
-      .findOne({ uid })
-      .select({ displayName: 1, email: 1 });
+  find(uid: string) {
+    return this.userModel.findOne({ uid });
   }
 
-  async findByEmail(email: string) {
-    return await this.userModel
-      .findOne({ email })
-      .select({ displayName: 1, uid: 1 });
+  findByEmail(email: string) {
+    return this.userModel.findOne({ email });
   }
 
   update(uid: string, dto: UpdateUserDto) {
@@ -34,5 +32,12 @@ export class UsersService {
 
   delete(uid: string) {
     return this.userModel.deleteOne({ uid });
+  }
+
+  async changeStatus(uid: string): Promise<UserRecord> {
+    const user = await auth().getUser(uid);
+    const currentStatus = user.disabled;
+
+    return auth().updateUser(uid, { disabled: !currentStatus });
   }
 }
