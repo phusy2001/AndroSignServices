@@ -108,7 +108,7 @@ export class AppController {
     const object = await this.fileService.getFileXfdf(id);
     return res.status(HttpStatus.OK).json({
       data: {
-        xfdf: object.xfdf,
+        data: object,
       },
       status: 'true',
       message: 'Get File Successfully',
@@ -122,7 +122,9 @@ export class AppController {
       body.xfdf,
       body.signed,
       body.total,
-      body.completed
+      body.completed,
+      body.step,
+      body.user
     );
     if (result) {
       return res.status(HttpStatus.OK).json({

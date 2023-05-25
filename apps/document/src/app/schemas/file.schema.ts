@@ -22,6 +22,10 @@ export class File {
   total: number;
   @Prop({ default: false })
   completed: Boolean;
+  @Prop({ default: 0 })
+  stepNow: number;
+  @Prop({ default: 'null' })
+  stepUser: string;
   @Prop({ default: [] })
   starred: Array<string>;
   @Prop({ default: [] })

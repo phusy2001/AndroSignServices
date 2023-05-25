@@ -36,6 +36,8 @@ export class FileService {
       },
       _id: 1,
       name: 1,
+      stepUser: 1,
+      completed: 1,
       path: 1,
       updated_at: 1,
     });
@@ -52,7 +54,10 @@ export class FileService {
   }
 
   async getFileXfdf(fileId: string) {
-    return await this.fileModel.findById(fileId, 'xfdf');
+    return await this.fileModel.findById(fileId, {
+      xfdf: 1,
+      stepNow: 1,
+    });
   }
 
   async updateXfdfById(
@@ -60,7 +65,9 @@ export class FileService {
     xfdf: string,
     signed: number,
     total: number,
-    completed: Boolean
+    completed: Boolean,
+    stepNum: number,
+    stepUser: string
   ) {
     return await this.fileModel.findByIdAndUpdate(id, {
       xfdf: xfdf,
@@ -68,6 +75,8 @@ export class FileService {
       signed: signed,
       total: total,
       completed: completed,
+      stepNow: stepNum,
+      stepUser: stepUser,
     });
   }
 
@@ -116,6 +125,8 @@ export class FileService {
         },
         _id: 1,
         name: 1,
+        stepUser: 1,
+        completed: 1,
         path: 1,
         updated_at: 1,
       });
@@ -151,6 +162,8 @@ export class FileService {
         },
         _id: 1,
         name: 1,
+        stepUser: 1,
+        completed: 1,
         path: 1,
         updated_at: 1,
       });
@@ -188,6 +201,8 @@ export class FileService {
         },
         _id: 1,
         name: 1,
+        stepUser: 1,
+        completed: 1,
         path: 1,
         updated_at: 1,
       });
