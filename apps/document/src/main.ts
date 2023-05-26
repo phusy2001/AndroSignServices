@@ -2,11 +2,15 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
 import { ConfigService } from '@nestjs/config';
+import bodyParser from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
 
   const configService: ConfigService = app.get(ConfigService);
+
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,

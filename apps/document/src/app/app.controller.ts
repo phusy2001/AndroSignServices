@@ -22,7 +22,6 @@ import { AuthGuard } from './commons/guard/auth.guard';
 import { UserId } from './commons/decorator/userid.decorator';
 
 @Controller()
-@UseGuards(AuthGuard)
 export class AppController {
   constructor(
     private readonly appService: AppService,
@@ -121,7 +120,6 @@ export class AppController {
       body.id,
       body.xfdf,
       body.signed,
-      body.total,
       body.completed,
       body.step,
       body.user
@@ -142,17 +140,20 @@ export class AppController {
 
   @Post('/addShared')
   async addUserToSharedFile(@Res() res, @Body() body) {
-    //body.email => Email to be Shared
-    //Find ObjectId of that Email User
-    //body.id => FileId
-    const userId = '644783c0af1a55de6da19347';
-    const result = await this.fileService.addUserToSharedFile(userId, body.id);
-    if (result) {
-      return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'true',
-        message: 'Add User To File Successfully',
-      });
+    const object = await this.appService.getIdByUserEmail(body.email);
+    if (object.status === 'true') {
+      const userId = object.data.uid;
+      const result = await this.fileService.addUserToSharedFile(
+        userId,
+        body.id
+      );
+      if (result) {
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Add User To File Successfully',
+        });
+      }
     }
     return res.status(HttpStatus.OK).json({
       data: {},
@@ -188,9 +189,9 @@ export class AppController {
     @Query('offset') offset
   ) {
     const objects = await this.fileService.getFileUserShared(fileId, offset);
-    //objects.sharedTo references to UserId (Send Id => Get Email and Username)
+    const result = await this.appService.getUsersByIdArr(objects.sharedTo);
     return res.status(HttpStatus.OK).json({
-      data: objects,
+      data: objects.sharedTo.length > 0 ? result.data : [],
       status: 'true',
       message: 'Get User File Shared Successfully',
     });

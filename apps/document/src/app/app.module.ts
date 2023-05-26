@@ -8,15 +8,27 @@ import { FileService } from './services/file.service';
 import { S3Service } from './services/s3.service';
 import { FolderService } from './services/folder.service';
 import { Folder, FolderSchema } from './schemas/folder.schema';
+import { ClientsModule, Transport } from '@nestjs/microservices';
 
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    ClientsModule.register([
+      {
+        name: 'USER_SERVICE',
+        transport: Transport.RMQ,
+        options: {
+          urls: ['amqp://localhost:5672'],
+          queue: 'user_queue',
+          queueOptions: {
+            durable: true,
+          },
+        },
+      },
+    ]),
     MongooseModule.forRoot(
       `mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_HOST}/?${process.env.MONGODB_OPTIONS}`,
-      {
-        dbName: 'DocumentService',
-      }
+      { dbName: 'DocumentService' }
     ),
     MongooseModule.forFeature([{ name: File.name, schema: FileSchema }]),
     MongooseModule.forFeature([{ name: Folder.name, schema: FolderSchema }]),

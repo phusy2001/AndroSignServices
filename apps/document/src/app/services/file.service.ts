@@ -64,20 +64,26 @@ export class FileService {
     id: string,
     xfdf: string,
     signed: number,
-    total: number,
     completed: Boolean,
     stepNum: number,
     stepUser: string
   ) {
-    return await this.fileModel.findByIdAndUpdate(id, {
-      xfdf: xfdf,
-      updated_at: new Date(),
-      signed: signed,
-      total: total,
-      completed: completed,
-      stepNow: stepNum,
-      stepUser: stepUser,
-    });
+    if (stepNum !== 0)
+      return await this.fileModel.findByIdAndUpdate(id, {
+        xfdf: xfdf,
+        updated_at: new Date(),
+        signed: signed,
+        completed: completed,
+        stepNow: stepNum,
+        stepUser: stepUser,
+      });
+    else
+      return await this.fileModel.findByIdAndUpdate(id, {
+        xfdf: xfdf,
+        updated_at: new Date(),
+        signed: signed,
+        completed: completed,
+      });
   }
 
   async deleteFile(id: string) {
@@ -102,6 +108,7 @@ export class FileService {
     const numLimit = 10;
     return await this.fileModel.findById(id, {
       sharedTo: { $slice: [(offset - 1) * numLimit, numLimit] },
+      xfdf: 0,
     });
   }
 

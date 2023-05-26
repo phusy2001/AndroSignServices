@@ -170,7 +170,22 @@ export class UsersController {
     }
   }
 
-  // Microservice
+  @Get('email/:email')
+  async getUserByEmail(@Param('email') email: string) {
+    const user = await this.usersService.findByEmail(email);
+    if (user)
+      return {
+        data: user,
+        status: 'true',
+        message: 'Get User By Email Successfully.',
+      };
+    return {
+      data: {},
+      status: 'false',
+      message: 'Get User By Email Failed.',
+    };
+  }
+
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);
