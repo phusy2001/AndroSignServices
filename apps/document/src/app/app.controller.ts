@@ -120,7 +120,6 @@ export class AppController {
       body.id,
       body.xfdf,
       body.signed,
-      body.completed,
       body.step,
       body.user
     );

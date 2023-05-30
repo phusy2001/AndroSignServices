@@ -20,8 +20,10 @@ export class File {
   signed: number;
   @Prop({ default: 0 })
   total: number;
-  @Prop({ default: false })
-  completed: Boolean;
+  @Prop({ default: 0 })
+  stepIndex: number;
+  @Prop({ default: 0 })
+  stepTotal: number;
   @Prop({ default: 0 })
   stepNow: number;
   @Prop({ default: 'null' })
