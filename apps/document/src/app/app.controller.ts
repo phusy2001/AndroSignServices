@@ -85,13 +85,13 @@ export class AppController {
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    // const userId = 'null';
     const objects = await this.fileService.getOwnFilesByUserId(
       userId,
       offset,
       keyword,
       sort,
-      order
+      order,
+      status
     );
     return res.status(HttpStatus.OK).json({
       data: {
@@ -206,13 +206,13 @@ export class AppController {
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    // const userId = 'null';
     const objects = await this.fileService.getFilesSharedByUserId(
       userId,
       offset,
       keyword,
       sort,
-      order
+      order,
+      status
     );
     return res.status(HttpStatus.OK).json({
       data: {
@@ -249,7 +249,6 @@ export class AppController {
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    // const userId = 'null';
     const objects = await this.folderService.getFoldersByUserId(
       userId,
       offset,
@@ -290,7 +289,6 @@ export class AppController {
     @Query('id') folderId,
     @Query('offset') offset
   ) {
-    // const userId = 'null';
     const result = await this.folderService.getFilesIdByFolderId(
       folderId,
       offset
@@ -359,7 +357,6 @@ export class AppController {
 
   @Post('/markFile')
   async markFile(@Res() res, @UserId() userId, @Body() body) {
-    // const userId = 'null';
     const result = await this.fileService.markFile(body.id, userId);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -377,7 +374,6 @@ export class AppController {
 
   @Post('/unmarkFile')
   async unmarkFile(@Res() res, @UserId() userId, @Body() body) {
-    // const userId = 'null';
     const result = await this.fileService.unmarkFile(body.id, userId);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -399,16 +395,17 @@ export class AppController {
     @UserId() userId,
     @Query('offset') offset,
     @Query('sort') sort,
+    @Query('status') status,
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    // const userId = 'null';
     const objects = await this.fileService.getStarredFiles(
       userId,
       offset,
       keyword,
       sort,
-      order
+      order,
+      status
     );
     return res.status(HttpStatus.OK).json({
       data: {
@@ -428,7 +425,6 @@ export class AppController {
     @Query('keyword') keyword,
     @Query('order') order
   ) {
-    // const userId = 'null';
     const objects = await this.fileService.getDeletedFiles(
       userId,
       offset,

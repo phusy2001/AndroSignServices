@@ -23,7 +23,8 @@ export class FileService {
     offset: number,
     keyword: string,
     sort: string,
-    order: string
+    order: string,
+    status: string
   ) {
     const numLimit = 10;
     const query = this.fileModel.find({ user: userId, deleted: false }).select({
@@ -34,14 +35,32 @@ export class FileService {
           else: false,
         },
       },
+      completed: {
+        $cond: {
+          if: { $eq: ['$stepIndex', '$stepTotal'] },
+          then: true,
+          else: false,
+        },
+      },
+      total: 1,
       _id: 1,
       name: 1,
       stepUser: 1,
-      completed: 1,
       path: 1,
       updated_at: 1,
     });
     if (keyword !== '') query.find({ $text: { $search: keyword } });
+    if (status === 'completed')
+      query.find({
+        $expr: {
+          $eq: ['$stepIndex', '$stepTotal'],
+        },
+      });
+    else if (status === 'me') query.find({ stepUser: userId });
+    else if (status === 'others')
+      query.find({
+        stepUser: { $nin: [userId, 'null'] },
+      });
     query.limit(numLimit);
     query.skip((offset - 1) * numLimit);
     if (sort === 'updated')
@@ -109,7 +128,8 @@ export class FileService {
     offset: number,
     keyword: string,
     sort: string,
-    order: string
+    order: string,
+    status: string
   ) {
     const numLimit = 10;
     const query = this.fileModel
@@ -122,14 +142,32 @@ export class FileService {
             else: false,
           },
         },
+        completed: {
+          $cond: {
+            if: { $eq: ['$stepIndex', '$stepTotal'] },
+            then: true,
+            else: false,
+          },
+        },
+        total: 1,
         _id: 1,
         name: 1,
         stepUser: 1,
-        completed: 1,
         path: 1,
         updated_at: 1,
       });
     if (keyword !== '') query.find({ $text: { $search: keyword } });
+    if (status === 'completed')
+      query.find({
+        $expr: {
+          $eq: ['$stepIndex', '$stepTotal'],
+        },
+      });
+    else if (status === 'me') query.find({ stepUser: userId });
+    else if (status === 'others')
+      query.find({
+        stepUser: { $nin: [userId, 'null'] },
+      });
     query.limit(numLimit);
     query.skip((offset - 1) * numLimit);
     if (sort === 'updated')
@@ -159,10 +197,17 @@ export class FileService {
             else: false,
           },
         },
+        completed: {
+          $cond: {
+            if: { $eq: ['$stepIndex', '$stepTotal'] },
+            then: true,
+            else: false,
+          },
+        },
+        total: 1,
         _id: 1,
         name: 1,
         stepUser: 1,
-        completed: 1,
         path: 1,
         updated_at: 1,
       });
@@ -185,7 +230,8 @@ export class FileService {
     offset: number,
     keyword: string,
     sort: string,
-    order: string
+    order: string,
+    status: string
   ) {
     const numLimit = 10;
     const query = this.fileModel
@@ -198,14 +244,32 @@ export class FileService {
             else: false,
           },
         },
+        completed: {
+          $cond: {
+            if: { $eq: ['$stepIndex', '$stepTotal'] },
+            then: true,
+            else: false,
+          },
+        },
+        total: 1,
         _id: 1,
         name: 1,
         stepUser: 1,
-        completed: 1,
         path: 1,
         updated_at: 1,
       });
     if (keyword !== '') query.find({ $text: { $search: keyword } });
+    if (status === 'completed')
+      query.find({
+        $expr: {
+          $eq: ['$stepIndex', '$stepTotal'],
+        },
+      });
+    else if (status === 'me') query.find({ stepUser: userId });
+    else if (status === 'others')
+      query.find({
+        stepUser: { $nin: [userId, 'null'] },
+      });
     query.limit(numLimit);
     query.skip((offset - 1) * numLimit);
     if (sort === 'updated')
