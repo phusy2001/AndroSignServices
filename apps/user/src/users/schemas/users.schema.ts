@@ -22,11 +22,20 @@ export class User {
   @Prop({ required: false })
   phone_number: string;
 
+  @Prop({ required: false })
+  address: string;
+
   @Prop({ default: 'customer' })
   role: Role;
 
   @Prop([String])
   fcm_tokens: string[];
+
+  @Prop()
+  path_ca: string;
+
+  @Prop()
+  password_ca: string;
 
   @Prop({ default: now() })
   created_at: Date;

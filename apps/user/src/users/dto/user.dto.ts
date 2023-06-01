@@ -17,8 +17,17 @@ export class CreateUserDto {
   @IsNotEmpty()
   email: string;
 
-  @IsEmail()
+  @Allow()
   phone_number: string;
+
+  @Allow()
+  address: string;
+
+  @Allow()
+  path_ca: string;
+
+  @Allow()
+  password_ca: string;
 
   @Allow()
   role: Role;
