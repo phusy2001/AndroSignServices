@@ -457,4 +457,22 @@ export class AppController {
       message: 'Restore File Failed',
     });
   }
+
+  @Post('/deletePermanently')
+  async deletePermanently(@Res() res, @Body() body) {
+    const result = await this.fileService.deletePermanently(body.id);
+    if (result) {
+      this.s3Service.delete(body.id + '.pdf');
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Delete File Permanently Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Delete File Permanently Failed',
+    });
+  }
 }

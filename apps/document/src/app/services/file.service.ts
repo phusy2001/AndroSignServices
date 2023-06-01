@@ -311,4 +311,8 @@ export class FileService {
       deleted: false,
     });
   }
+
+  async deletePermanently(fileId: string) {
+    return await this.fileModel.findByIdAndDelete(fileId);
+  }
 }
