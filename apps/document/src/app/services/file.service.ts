@@ -315,4 +315,24 @@ export class FileService {
   async deletePermanently(fileId: string) {
     return await this.fileModel.findByIdAndDelete(fileId);
   }
+
+  async updateFileHistory(fileId: string, userId: string, action: string) {
+    return await this.fileModel.findByIdAndUpdate(fileId, {
+      $addToSet: {
+        history: {
+          user: userId,
+          action,
+          date: new Date(),
+        },
+      },
+    });
+  }
+
+  async getFileHistory(id: string, offset: number) {
+    const numLimit = 10;
+    return await this.fileModel.findById(id, {
+      history: { $slice: [(offset - 1) * numLimit, numLimit] },
+      xfdf: 0,
+    });
+  }
 }

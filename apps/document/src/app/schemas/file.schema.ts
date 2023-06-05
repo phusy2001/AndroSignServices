@@ -32,6 +32,8 @@ export class File {
   starred: Array<string>;
   @Prop({ default: [] })
   sharedTo: Array<string>;
+  @Prop({ default: [] })
+  history: Array<object>;
   @Prop({
     default: () => {
       return new Date();

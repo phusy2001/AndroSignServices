@@ -43,7 +43,8 @@ export class AppController {
       object._id + '.pdf'
     );
     if (result) {
-      await this.fileService.updatePathById(object._id, result.Location);
+      this.fileService.updatePathById(object._id, result.Location);
+      this.fileService.updateFileHistory(object._id, body.user, 'create');
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
@@ -59,7 +60,6 @@ export class AppController {
 
   @Post('/deleteFile')
   async deleteFile(@Res() res, @Body() body) {
-    // const result = await this.s3Service.delete(body.name + '.pdf');
     const result = await this.fileService.deleteFile(body.id);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -103,8 +103,9 @@ export class AppController {
   }
 
   @Get('/getXfdf')
-  async getFileXfdf(@Res() res, @Query('id') id) {
+  async getFileXfdf(@Res() res, @UserId() userId, @Query('id') id) {
     const object = await this.fileService.getFileXfdf(id);
+    this.fileService.updateFileHistory(id, userId, 'open');
     return res.status(HttpStatus.OK).json({
       data: {
         data: object,
@@ -115,7 +116,7 @@ export class AppController {
   }
 
   @Post('/editFile')
-  async editFile(@Res() res, @Body() body) {
+  async editFile(@Res() res, @UserId() userId, @Body() body) {
     const result = await this.fileService.updateXfdfById(
       body.id,
       body.xfdf,
@@ -124,6 +125,7 @@ export class AppController {
       body.user
     );
     if (result) {
+      this.fileService.updateFileHistory(body.id, userId, 'save');
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
@@ -473,6 +475,29 @@ export class AppController {
       data: {},
       status: 'false',
       message: 'Delete File Permanently Failed',
+    });
+  }
+
+  @Get('/getFileHistory')
+  async getFileHistory(
+    @Res() res,
+    @Query('id') fileId,
+    @Query('offset') offset
+  ) {
+    const object = await this.fileService.getFileHistory(fileId, offset);
+    for (let item of object.history) {
+      const data = await this.appService.getUsersByIdArr([item.user]);
+      item.text = data.data[0].display_name;
+      if (item.action === 'open') item.text += ' đã mở tài liệu';
+      else if (item.action === 'create') item.text += ' đã tạo tài liệu';
+      else if (item.action === 'save') item.text += ' đã xác nhận ký tài liệu';
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {
+        data: object.history,
+      },
+      status: 'true',
+      message: 'Get File History Successfully',
     });
   }
 }
