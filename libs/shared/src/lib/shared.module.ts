@@ -83,12 +83,8 @@ import { UserId } from './decorator/userid.decorator';
         return client;
       },
     },
-    {
-      provide: 'UserId',
-      useValue: UserId,
-    },
     AuthGuard,
   ],
-  exports: ['REDIS_CLIENT', ClientsModule, AuthGuard, UserId],
+  exports: ['REDIS_CLIENT', ClientsModule, AuthGuard],
 })
 export class SharedModule {}
