@@ -2,7 +2,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Global, Module } from '@nestjs/common';
 import { createClient } from 'redis';
 import { AuthGuard } from './guards/auth.guard';
-import { UserId } from './decorator/userid.decorator';
 
 @Global()
 @Module({
