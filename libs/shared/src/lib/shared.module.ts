@@ -2,6 +2,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { Global, Module } from '@nestjs/common';
 import { createClient } from 'redis';
 import { AuthGuard } from './guards/auth.guard';
+import { UserId } from './decorator/userid.decorator';
 
 @Global()
 @Module({
@@ -83,7 +84,11 @@ import { AuthGuard } from './guards/auth.guard';
         return client;
       },
     },
+    {
+      provide: 'UserId',
+      useValue: UserId,
+    },
   ],
-  exports: ['REDIS_CLIENT', ClientsModule, AuthGuard],
+  exports: ['REDIS_CLIENT', ClientsModule, AuthGuard, UserId],
 })
 export class SharedModule {}
