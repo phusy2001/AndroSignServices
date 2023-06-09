@@ -67,7 +67,6 @@ import { UserId } from './decorator/userid.decorator';
         },
       },
     ]),
-    AuthGuard,
   ],
   controllers: [],
   providers: [
@@ -88,6 +87,7 @@ import { UserId } from './decorator/userid.decorator';
       provide: 'UserId',
       useValue: UserId,
     },
+    AuthGuard,
   ],
   exports: ['REDIS_CLIENT', ClientsModule, AuthGuard, UserId],
 })
