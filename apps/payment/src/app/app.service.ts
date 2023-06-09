@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 
 @Injectable()
 export class AppService {
-  getData(): { message: string } {
-    return { message: 'Welcome to payment!' };
+  constructor(@Inject('REDIS_CLIENT') private readonly redisClient: any) {}
+
+  async getData() {
+    const value = await this.redisClient.get('name');
+    return { message: value };
   }
 }
