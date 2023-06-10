@@ -484,8 +484,8 @@ export class AppController {
     @Query('id') fileId,
     @Query('offset') offset
   ) {
-    const object = await this.fileService.getFileHistory(fileId, offset);
-    for (let item of object.history) {
+    const object: any = await this.fileService.getFileHistory(fileId, offset);
+    for (const item of object.history) {
       const data = await this.appService.getUsersByIdArr([item.user]);
       item.text = data.data[0].display_name;
       if (item.action === 'open') item.text += ' đã mở tài liệu';
