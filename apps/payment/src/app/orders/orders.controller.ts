@@ -18,6 +18,11 @@ export class OrdersController {
     }
   }
 
+  @Get()
+  async test() {
+    return await this.ordersService.test();
+  }
+
   @Get(':id')
   async getStatus(@Param('id') app_trans_id: string) {
     try {

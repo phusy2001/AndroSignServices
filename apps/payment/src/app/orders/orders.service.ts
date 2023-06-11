@@ -1,9 +1,4 @@
-import {
-  HttpException,
-  HttpStatus,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -12,6 +7,8 @@ import CryptoJS from 'crypto-js';
 import qs from 'qs';
 
 import { Order } from './entities/order.entity';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService {
@@ -22,7 +19,25 @@ export class OrdersService {
     endpoint: 'https://sb-openapi.zalopay.vn/v2/create',
   };
 
-  constructor(@InjectModel(Order.name) private orderModel: Model<Order>) {}
+  constructor(
+    @InjectModel(Order.name) private orderModel: Model<Order>,
+    @Inject('REDIS_CLIENT') private readonly redisClient: any,
+    @Inject('USER_SERVICE') private readonly clientProxy: ClientProxy
+  ) {}
+
+  async test() {
+    const user = await this.redisClient.get('user');
+    if (user) {
+      console.log('Cached', user);
+      await this.redisClient.del('user');
+    } else {
+      const tempUser = await lastValueFrom(
+        this.clientProxy.send('get_user_by_email', '2121@gmail.com')
+      );
+      await this.redisClient.set('user', JSON.stringify(tempUser));
+      console.log('new User', user);
+    }
+  }
 
   async create() {
     // APP INFO
