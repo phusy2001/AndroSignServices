@@ -2,10 +2,6 @@ import { Controller, Get, Param, Post } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 @Controller('orders')
 export class OrdersController {
-  private readonly config = {
-    key2: 'eG4r0GcoNtRGbO8',
-  };
-
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()

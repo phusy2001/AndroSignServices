@@ -1,4 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -13,9 +14,9 @@ import { lastValueFrom } from 'rxjs';
 @Injectable()
 export class OrdersService {
   private config = {
-    app_id: '2553',
-    key1: 'PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL',
-    key2: 'kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz',
+    app_id: `${process.env.APP_ID}`,
+    key1: `${process.env.KEY1}`,
+    key2: `${process.env.KEY2}`,
     endpoint: 'https://sb-openapi.zalopay.vn/v2/create',
   };
 
