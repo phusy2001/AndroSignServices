@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -8,26 +8,45 @@ import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    @Inject('REDIS_CLIENT') private readonly redisClient: any
+  ) {}
 
-  create(dto: CreateUserDto) {
-    return new this.userModel(dto).save();
+  async create(dto: CreateUserDto) {
+    try {
+      const user = await new this.userModel(dto).save();
+
+      await this.redisClient.set('user', JSON.stringify(user));
+
+      return user;
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   findAll() {
     return this.userModel.find().exec();
   }
 
-  find(uid: string) {
-    return this.userModel
+  async find(uid: string) {
+    const user = await this.userModel
       .findOne({ uid })
       .select({ display_name: 1, email: 1 });
+
+    await this.redisClient.set('user', JSON.stringify(user));
+
+    return user;
   }
 
-  findByEmail(email: string) {
-    return this.userModel
+  async findByEmail(email: string) {
+    const user = await this.userModel
       .findOne({ email })
       .select({ display_name: 1, uid: 1 });
+
+    await this.redisClient.set('user', JSON.stringify(user));
+
+    return user;
   }
 
   async findByListUid(uidList: [string]) {
@@ -44,12 +63,20 @@ export class UsersService {
     return result;
   }
 
-  update(uid: string, dto: UpdateUserDto) {
-    return this.userModel.updateOne({ uid }, dto);
+  async update(uid: string, dto: UpdateUserDto) {
+    const user = await this.userModel.updateOne({ uid }, dto, { new: true });
+
+    await this.redisClient.set('user', JSON.stringify(user));
+
+    return user;
   }
 
-  delete(uid: string) {
-    return this.userModel.deleteOne({ uid });
+  async delete(uid: string) {
+    const user = this.userModel.deleteOne({ uid });
+
+    await this.redisClient.del('user');
+
+    return user;
   }
 
   async changeStatus(uid: string): Promise<UserRecord> {
