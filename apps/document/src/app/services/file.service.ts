@@ -335,4 +335,8 @@ export class FileService {
       xfdf: 0,
     });
   }
+
+  async renameFile(id: string, name: string) {
+    return await this.fileModel.findByIdAndUpdate(id, { name: name });
+  }
 }

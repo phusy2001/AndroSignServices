@@ -500,4 +500,21 @@ export class AppController {
       message: 'Get File History Successfully',
     });
   }
+
+  @Post('/renameFile')
+  async renameFile(@Res() res, @Body() body) {
+    const result = await this.fileService.renameFile(body.id, body.name);
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'true',
+        message: 'Rename File Successfully',
+      });
+    }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Rename File Failed',
+    });
+  }
 }
