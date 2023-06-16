@@ -41,6 +41,8 @@ async function bootstrap() {
     databaseURL: 'https://xxxxx.firebaseio.com',
   });
 
+  app.setGlobalPrefix('background');
+
   await app.startAllMicroservices();
   await app.listen(
     configService.get<string>('BACKGROUND_SERVICE_PORT') || 3003

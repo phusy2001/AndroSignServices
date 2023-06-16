@@ -33,12 +33,9 @@ export class AppController {
     //   });
     await admin
       .messaging()
-      .sendToDevice(
-        token,
-        {
-          data: data
-        }
-      )
+      .sendToDevice(token, {
+        data: data,
+      })
       .then((res) => {
         console.log(res);
       });
@@ -53,7 +50,7 @@ export class AppController {
     // Send a message to devices with the registered tokens
     await admin.messaging().sendMulticast({
       tokens, // ['token_1', 'token_2', ...]
-      data: data
+      data: data,
     });
   }
 }

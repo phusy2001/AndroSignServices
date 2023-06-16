@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { NotificationsModule } from './notifications/notifications.module';
 import { TracklogsModule } from './tracklogs/tracklogs.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { TracklogsModule } from './tracklogs/tracklogs.module';
     ),
     NotificationsModule,
     TracklogsModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
