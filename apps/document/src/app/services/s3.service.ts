@@ -12,7 +12,7 @@ export class S3Service {
     });
   }
 
-  async upload(data: Buffer, key: String) {
+  async upload(data: Buffer, key: string) {
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: String(key),
@@ -24,7 +24,7 @@ export class S3Service {
     return result;
   }
 
-  async delete(key: String) {
+  async delete(key: string) {
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: String(key),

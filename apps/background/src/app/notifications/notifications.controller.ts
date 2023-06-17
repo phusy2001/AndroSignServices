@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { NotificationsService } from './notifications.service';
 
@@ -7,18 +7,22 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @MessagePattern('createNotification')
-  sendToDevice(@Payload() payload: any) {
+  async sendToDeviceMS(@Payload() payload) {
     const { data, token } = payload;
-    this.notificationsService
-      .send(data, token)
-      .then((response) => {
-        //
-      })
-      .catch((error) => {});
+    try {
+      await this.notificationsService.send(data, token);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
-  @Get('/:id')
-  findOne(@Payload() user_id: string) {
-    return this.notificationsService.findByUser(user_id);
+  @MessagePattern('createNotification')
+  async sendToMultiDevice(@Payload() payload) {
+    const { data, tokens } = payload;
+    try {
+      await this.notificationsService.sendMulticast(data, tokens);
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

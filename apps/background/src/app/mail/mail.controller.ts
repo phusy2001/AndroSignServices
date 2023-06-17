@@ -8,11 +8,11 @@ import {
 import { MailerService } from '@nestjs-modules/mailer';
 import { MessagePattern } from '@nestjs/microservices';
 
-@Controller('mail')
+@Controller('emails')
 export class MailController {
   constructor(private readonly mailerService: MailerService) {}
 
-  @Post('send')
+  @Post()
   async sendEmail(
     @Body() emailData: { email: string; subject: string; content: string }
   ) {
@@ -40,7 +40,7 @@ export class MailController {
     }
   }
 
-  @MessagePattern('send_mail')
+  @MessagePattern('send_email')
   async sendEmailMS(emailData: {
     email: string;
     subject: string;

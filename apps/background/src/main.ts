@@ -1,12 +1,10 @@
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
-import * as admin from 'firebase-admin';
 import { AppModule } from './app/app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
-
   const configService: ConfigService = app.get(ConfigService);
 
   app.connectMicroservice<MicroserviceOptions>({
@@ -27,18 +25,6 @@ async function bootstrap() {
         durable: true,
       },
     },
-  });
-
-  // Initialize the firebase admin app
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: configService.get<string>('FIREBASE_PROJECT_ID'),
-      privateKey: configService
-        .get<string>('FIREBASE_PRIVATE_KEY')
-        .replace(/\\n/g, '\n'),
-      clientEmail: configService.get<string>('FIREBASE_CLIENT_EMAIL'),
-    }),
-    databaseURL: 'https://xxxxx.firebaseio.com',
   });
 
   app.setGlobalPrefix('background');

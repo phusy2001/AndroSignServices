@@ -1,15 +1,14 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
 import moment from 'moment';
 import CryptoJS from 'crypto-js';
 import qs from 'qs';
-
 import { Order } from './entities/order.entity';
 import { ClientProxy } from '@nestjs/microservices';
 import { lastValueFrom } from 'rxjs';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -40,7 +39,7 @@ export class OrdersService {
     }
   }
 
-  async create() {
+  async create(orderDto: CreateOrderDto) {
     // APP INFO
 
     const embed_data = {};
@@ -49,8 +48,8 @@ export class OrdersService {
     const transID = Math.floor(Math.random() * 1000000);
     const order = {
       app_id: this.config.app_id,
-      app_trans_id: `${moment().format('YYMMDD')}_${transID}`, // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
-      app_user: 'user123',
+      app_trans_id: `${moment().format('YYMMDD')}_${orderDto.order_id}`, // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
+      app_user: orderDto.user_id,
       app_time: Date.now(), // miliseconds
       item: JSON.stringify(items),
       embed_data: JSON.stringify(embed_data),
