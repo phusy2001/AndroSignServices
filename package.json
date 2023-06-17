@@ -6,6 +6,7 @@
   "private": true,
   "dependencies": {
     "@nestjs-modules/mailer": "^1.8.1",
+    "@nestjs/axios": "^3.0.0",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^2.3.1",
     "@nestjs/core": "^9.0.0",
@@ -21,7 +22,7 @@
     "amqp-connection-manager": "^4.1.12",
     "amqplib": "^0.10.3",
     "aws-sdk": "^2.1361.0",
-    "axios": "^1.0.0",
+    "axios": "^1.4.0",
     "bcrypt": "^5.1.0",
     "body-parser": "^1.20.2",
     "class-validator": "^0.14.0",
