@@ -8,7 +8,6 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
@@ -18,8 +17,7 @@ import { FileService } from './services/file.service';
 import { File } from './schemas/file.schema';
 import { S3Service } from './services/s3.service';
 import { FolderService } from './services/folder.service';
-import { AuthGuard } from './commons/guard/auth.guard';
-import { UserId } from './commons/decorator/userid.decorator';
+import { UserId } from '@androsign-microservices/shared';
 
 @Controller()
 export class AppController {
@@ -45,6 +43,13 @@ export class AppController {
     if (result) {
       this.fileService.updatePathById(object._id, result.Location);
       this.fileService.updateFileHistory(object._id, body.user, 'create');
+      const data = await this.appService.getUserFcmtoken(body.stepUser);
+      if (data.data.fcm_tokens)
+        await this.appService.sendUserNotification(
+          data.data.fcm_tokens,
+          'Thông báo',
+          `Tài liệu  ${body.name} đang chờ bạn ký`
+        );
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
@@ -59,8 +64,9 @@ export class AppController {
   }
 
   @Post('/deleteFile')
-  async deleteFile(@Res() res, @Body() body) {
+  async deleteFile(@Res() res, @UserId() userId, @Body() body) {
     const result = await this.fileService.deleteFile(body.id);
+    this.fileService.updateFileHistory(body.id, userId, 'delete');
     if (result) {
       return res.status(HttpStatus.OK).json({
         data: {},
@@ -126,6 +132,23 @@ export class AppController {
     );
     if (result) {
       this.fileService.updateFileHistory(body.id, userId, 'save');
+      if (result.stepIndex === result.stepTotal) {
+        const data = await this.appService.getUserFcmtoken(result.user);
+        if (data.data.fcm_tokens)
+          this.appService.sendUserNotification(
+            data.data.fcm_tokens,
+            'Thông báo',
+            `Tài liệu ${result.name} đã hoàn tất`
+          );
+      } else {
+        const data = await this.appService.getUserFcmtoken(result.stepUser);
+        if (data.data.fcm_tokens)
+          this.appService.sendUserNotification(
+            data.data.fcm_tokens,
+            'Thông báo',
+            `Tài liệu ${result.name} đang chờ bạn ký`
+          );
+      }
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
@@ -140,15 +163,25 @@ export class AppController {
   }
 
   @Post('/addShared')
-  async addUserToSharedFile(@Res() res, @Body() body) {
+  async addUserToSharedFile(@Res() res, @UserId() userId, @Body() body) {
     const object = await this.appService.getIdByUserEmail(body.email);
     if (object.status === 'true') {
-      const userId = object.data.uid;
-      const result = await this.fileService.addUserToSharedFile(
-        userId,
-        body.id
-      );
+      const uid = object.data.uid;
+      if (uid === userId)
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'false',
+          message: 'Cannot share document to yourself',
+        });
+      const result = await this.fileService.addUserToSharedFile(uid, body.id);
       if (result) {
+        const data = await this.appService.getUserFcmtoken(uid);
+        if (data.data.fcm_tokens)
+          this.appService.sendUserNotification(
+            data.data.fcm_tokens,
+            'Thông báo',
+            `Tài liệu ${result.name} đã được chia sẻ với bạn`
+          );
         return res.status(HttpStatus.OK).json({
           data: {},
           status: 'true',
@@ -444,8 +477,9 @@ export class AppController {
   }
 
   @Post('/restoreFile')
-  async restoreFile(@Res() res, @Body() body) {
+  async restoreFile(@Res() res, @UserId() userId, @Body() body) {
     const result = await this.fileService.restoreFile(body.id);
+    this.fileService.updateFileHistory(body.id, userId, 'restore');
     if (result) {
       return res.status(HttpStatus.OK).json({
         data: {},
@@ -491,6 +525,8 @@ export class AppController {
       if (item.action === 'open') item.text += ' đã mở tài liệu';
       else if (item.action === 'create') item.text += ' đã tạo tài liệu';
       else if (item.action === 'save') item.text += ' đã xác nhận ký tài liệu';
+      else if (item.action === 'delete') item.text += ' đã xóa tài liệu';
+      else if (item.action === 'restore') item.text += ' đã phục hồi tài liệu';
     }
     return res.status(HttpStatus.OK).json({
       data: {
