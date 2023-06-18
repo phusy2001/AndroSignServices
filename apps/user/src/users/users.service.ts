@@ -32,7 +32,7 @@ export class UsersService {
   async find(uid: string) {
     const user = await this.userModel
       .findOne({ uid })
-      .select({ display_name: 1, email: 1 });
+      .select({ display_name: 1, email: 1, fcm_tokens: 1 });
 
     await this.redisClient.set('user', JSON.stringify(user));
 
@@ -88,5 +88,17 @@ export class UsersService {
 
   async getFcmToken(uid: string) {
     return await this.userModel.findOne({ uid }).select({ fcm_tokens: 1 });
+  }
+
+  async removeFcmToken(uid: string, fcmToken: string) {
+    const user = await this.getFcmToken(uid);
+
+    const fcmTokenList = user?.fcm_tokens;
+
+    const index = fcmTokenList?.indexOf(fcmToken);
+
+    fcmTokenList?.splice(index, 1);
+
+    return this.userModel.updateOne({ uid: uid }, { fcm_tokens: fcmTokenList });
   }
 }

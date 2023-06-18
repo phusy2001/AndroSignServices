@@ -170,6 +170,25 @@ export class UsersController {
     }
   }
 
+  @Post('/remove-fcm-token')
+  async removeFcmToken(@Body() dto) {
+    const user = await this.usersService.removeFcmToken(dto.uid, dto.fcmToken);
+
+    if (user) {
+      return {
+        data: user,
+        status: 'true',
+        message: 'Xoá fcm token thành công',
+      };
+    }
+
+    return {
+      data: {},
+      status: 'false',
+      message: 'Xoá fcm token thất bại.',
+    };
+  }
+
   @Get('email/:email')
   async getUserByEmail(@Param('email') email: string) {
     const user = await this.usersService.findByEmail(email);
