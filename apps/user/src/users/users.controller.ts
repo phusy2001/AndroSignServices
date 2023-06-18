@@ -220,4 +220,20 @@ export class UsersController {
       message: 'Lấy người dùng bằng email thất bại',
     };
   }
+
+  @MessagePattern('get_fcmtoken_user')
+  async getUserFcmtoken(uid: string) {
+    const result = await this.usersService.getFcmToken(uid);
+    if (result)
+      return {
+        data: result,
+        status: 'true',
+        message: 'Get Fcmtoken Successfully',
+      };
+    return {
+      data: {},
+      status: 'false',
+      message: 'Get Fcmtoken Failed',
+    };
+  }
 }

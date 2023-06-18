@@ -85,4 +85,8 @@ export class UsersService {
 
     return auth().updateUser(uid, { disabled: !currentStatus });
   }
+
+  async getFcmToken(uid: string) {
+    return await this.userModel.findOne({ uid }).select({ fcm_tokens: 1 });
+  }
 }

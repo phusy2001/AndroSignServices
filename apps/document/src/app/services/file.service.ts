@@ -87,14 +87,18 @@ export class FileService {
     stepNow: number,
     stepUser: string
   ) {
-    return await this.fileModel.findByIdAndUpdate(id, {
-      xfdf: xfdf,
-      signed: signed,
-      stepNow: stepNow,
-      stepUser: stepUser,
-      $inc: { stepIndex: 1 },
-      updated_at: new Date(),
-    });
+    return await this.fileModel.findByIdAndUpdate(
+      id,
+      {
+        xfdf: xfdf,
+        signed: signed,
+        stepNow: stepNow,
+        stepUser: stepUser,
+        $inc: { stepIndex: 1 },
+        updated_at: new Date(),
+      },
+      { new: true }
+    );
   }
 
   async deleteFile(id: string) {

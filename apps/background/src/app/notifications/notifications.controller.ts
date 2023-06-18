@@ -1,6 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { NotificationsService } from './notifications.service';
+import { from } from 'rxjs';
 
 @Controller()
 export class NotificationsController {
@@ -10,7 +11,7 @@ export class NotificationsController {
   async sendToDevice(@Payload() payload) {
     const { data, token } = payload;
     try {
-      await this.notificationsService.send(data, token);
+      return from(this.notificationsService.send(data, token));
     } catch (error) {
       console.log(error);
     }
@@ -20,7 +21,7 @@ export class NotificationsController {
   async sendToMultiDevice(@Payload() payload) {
     const { data, tokens } = payload;
     try {
-      await this.notificationsService.sendMulticast(data, tokens);
+      return from(this.notificationsService.sendMulticast(data, tokens));
     } catch (error) {
       console.log(error);
     }
