@@ -54,17 +54,19 @@ export class AppController {
   @Post('/signPDF')
   signPDF(
     @Res() res,
+    @Query() query,
     @Query('pdfPath') pdfPath: string,
     @Query('pfxPath') pfxPath: string,
-    @Query('password') password: string,
+    @Query('passWord') password: string,
     @Query('imgPath') imgPath: string,
-    @Query('stepNo') stepNo: string,
-    @Query('xfdf') xfdf: string
+    @Query('sXfdf') xfdf: string,
+    @Query('stepNo') stepNo: string
   ) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     this.appService
       .signPDF(pdfPath, pfxPath, password, imgPath, stepNo, xfdf)
       .subscribe((result) => {
+        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
         return res.status(HttpStatus.OK).json({
           data: result.data,
           message: 'Signed PDF',

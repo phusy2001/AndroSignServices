@@ -9,7 +9,7 @@ export class AppService {
       rejectUnauthorized: false,
     });
     this.certHost = 'https://localhost:7207/api/Cer/';
-    this.signPDFMethod = '/CreateSelfCA';
+    this.createCAMethod = '/CreateSelfCA';
     this.signPDFMethod = '/SignPDF';
   }
   private certHost: string;
@@ -49,11 +49,13 @@ export class AppService {
   signPDF(
     pdfPath: string,
     pfxPath: string,
-    password: string,
+    passWord: string,
     imgPath: string,
-    stepNo: string,
-    xfdf: string
+    sXfdf: string,
+    stepNo: string
   ): Observable<any> {
+    console.log('query', pdfPath, pfxPath, passWord, imgPath, stepNo, sXfdf);
+
     return this.httpService.request({
       url: this.signPDFMethod,
       method: 'POST',
@@ -61,10 +63,10 @@ export class AppService {
       params: {
         pdfPath: pdfPath,
         pfxPath: pfxPath,
-        password: password,
+        passWord: passWord,
         imgPath: imgPath,
+        sXfdf: sXfdf,
         stepNo: stepNo,
-        xfdf: xfdf,
       },
     });
   }
