@@ -1,4 +1,12 @@
-import { Controller, Get, HttpStatus, Param, Post, Res } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  Res,
+} from '@nestjs/common';
 
 import { AppService } from './app.service';
 
@@ -13,28 +21,54 @@ export class AppController {
 
   @Post('/test')
   test(@Res() res) {
-    return res.status(HttpStatus.OK).json({
-      data: this.appService.test(),
-      message: 'Connected',
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    this.appService.test().subscribe((result) => {
+      process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+      return res.status(HttpStatus.OK).json({
+        data: result.data,
+        message: 'Connected',
+      });
     });
   }
 
   @Post('/createSelfCA')
   createSelfCA(
     @Res() res,
-    @Param('issued') issued,
-    @Param('password') password,
-    @Param('fileName') fileName,
-    @Param('expireAfter') expireAfter?: number
+    @Query('issued') issued: string,
+    @Query('password') password: string,
+    @Query('fileName') fileName: string,
+    @Query('expireAfter') expireAfter?: number
   ) {
-    return res.status(HttpStatus.OK).json({
-      data: this.appService.createSelfCA(
-        issued,
-        password,
-        fileName,
-        expireAfter
-      ),
-      message: 'Created',
-    });
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    this.appService
+      .createSelfCA(issued, password, fileName, expireAfter)
+      .subscribe((result) => {
+        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+        return res.status(HttpStatus.OK).json({
+          data: result.data,
+          message: 'Created',
+        });
+      });
+  }
+
+  @Post('/signPDF')
+  signPDF(
+    @Res() res,
+    @Query('pdfPath') pdfPath: string,
+    @Query('pfxPath') pfxPath: string,
+    @Query('password') password: string,
+    @Query('imgPath') imgPath: string,
+    @Query('stepNo') stepNo: string,
+    @Query('xfdf') xfdf: string
+  ) {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    this.appService
+      .signPDF(pdfPath, pfxPath, password, imgPath, stepNo, xfdf)
+      .subscribe((result) => {
+        return res.status(HttpStatus.OK).json({
+          data: result.data,
+          message: 'Signed PDF',
+        });
+      });
   }
 }
