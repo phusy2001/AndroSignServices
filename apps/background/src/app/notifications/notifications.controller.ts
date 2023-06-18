@@ -6,8 +6,8 @@ import { NotificationsService } from './notifications.service';
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
-  @MessagePattern('createNotification')
-  async sendToDeviceMS(@Payload() payload) {
+  @MessagePattern('send')
+  async sendToDevice(@Payload() payload) {
     const { data, token } = payload;
     try {
       await this.notificationsService.send(data, token);
@@ -16,7 +16,7 @@ export class NotificationsController {
     }
   }
 
-  @MessagePattern('createNotification')
+  @MessagePattern('send_to_multicast')
   async sendToMultiDevice(@Payload() payload) {
     const { data, tokens } = payload;
     try {
