@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import * as https from 'https';
+import { stringify } from 'querystring';
 import { Observable } from 'rxjs';
 @Injectable()
 export class AppService {
@@ -47,27 +48,20 @@ export class AppService {
   }
 
   signPDF(
-    pdfPath: string,
-    pfxPath: string,
-    passWord: string,
-    imgPath: string,
-    sXfdf: string,
-    stepNo: string
+    data
+    // pdfPath: string,
+    // pfxPath: string,
+    // passWord: string,
+    // imgPath: string,
+    // sXfdf: string,
+    // stepNo: string
   ): Observable<any> {
-    console.log('query', pdfPath, pfxPath, passWord, imgPath, stepNo, sXfdf);
-
     return this.httpService.request({
       url: this.signPDFMethod,
       method: 'POST',
       baseURL: this.certHost,
-      params: {
-        pdfPath: pdfPath,
-        pfxPath: pfxPath,
-        passWord: passWord,
-        imgPath: imgPath,
-        sXfdf: sXfdf,
-        stepNo: stepNo,
-      },
+      data: JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 }

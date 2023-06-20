@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   HttpStatus,
@@ -6,7 +7,9 @@ import {
   Post,
   Query,
   Res,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { AppService } from './app.service';
 
@@ -52,25 +55,15 @@ export class AppController {
   }
 
   @Post('/signPDF')
-  signPDF(
-    @Res() res,
-    @Query() query,
-    @Query('pdfPath') pdfPath: string,
-    @Query('pfxPath') pfxPath: string,
-    @Query('passWord') password: string,
-    @Query('imgPath') imgPath: string,
-    @Query('sXfdf') xfdf: string,
-    @Query('stepNo') stepNo: string
-  ) {
+  @UseInterceptors(FileInterceptor('file'))
+  signPDF(@Res() res, @Body() data) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    this.appService
-      .signPDF(pdfPath, pfxPath, password, imgPath, stepNo, xfdf)
-      .subscribe((result) => {
-        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
-        return res.status(HttpStatus.OK).json({
-          data: result.data,
-          message: 'Signed PDF',
-        });
+    this.appService.signPDF(data).subscribe((result) => {
+      process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+      return res.status(HttpStatus.OK).json({
+        data: result.data,
+        message: 'Signed PDF',
       });
+    });
   }
 }
