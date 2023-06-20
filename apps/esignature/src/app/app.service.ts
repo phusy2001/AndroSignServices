@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import * as https from 'https';
-import { stringify } from 'querystring';
+import * as CryptoJS from 'crypto-js';
 import { Observable } from 'rxjs';
 @Injectable()
 export class AppService {
@@ -22,9 +22,32 @@ export class AppService {
     return { message: 'Welcome to esignature!' };
   }
 
+  private encrypt(plainText: string): string {
+    let key = CryptoJS.enc.Utf8.parse('4512631236589784');
+    let iv = CryptoJS.enc.Utf8.parse('4512631236589784');
+    var encrypted = CryptoJS.AES.encrypt(
+      CryptoJS.enc.Utf8.parse(plainText),
+      key,
+      {
+        keySize: 128 / 8,
+        iv: iv,
+        mode: CryptoJS.mode.CBC,
+        padding: CryptoJS.pad.Pkcs7,
+      }
+    );
+    return encrypted.toString();
+  }
   test(): Observable<any> {
-    return this.httpService.post(this.certHost, {
-      httpsAgent: this.httpsAgent,
+    let cipher = this.encrypt('nhbuu');
+    console.log('cipher', cipher);
+
+    return this.httpService.request({
+      url: '',
+      method: 'POST',
+      baseURL: this.certHost,
+      params: {
+        cipher: cipher,
+      },
     });
   }
 
