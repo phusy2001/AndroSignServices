@@ -45,7 +45,7 @@ export class AppController {
       this.fileService.updateFileHistory(object._id, body.user, 'create');
       const data = await this.appService.getUserFcmtoken(body.stepUser);
       if (data.data.fcm_tokens)
-        await this.appService.sendUserNotification(
+        this.appService.sendUserNotification(
           data.data.fcm_tokens,
           'Thông báo',
           `Tài liệu  ${body.name} đang chờ bạn ký`
@@ -123,7 +123,7 @@ export class AppController {
 
   @Post('/editFile')
   async editFile(@Res() res, @UserId() userId, @Body() body) {
-    const result = await this.fileService.updateXfdfById(
+    const result = await this.fileService.updateFileById(
       body.id,
       body.xfdf,
       body.signed,
@@ -132,7 +132,7 @@ export class AppController {
     );
     if (result) {
       this.fileService.updateFileHistory(body.id, userId, 'save');
-      if (result.stepIndex === result.stepTotal) {
+      if (result.stepIndex + 1 === result.stepTotal) {
         const data = await this.appService.getUserFcmtoken(result.user);
         if (data.data.fcm_tokens)
           this.appService.sendUserNotification(
@@ -141,13 +141,24 @@ export class AppController {
             `Tài liệu ${result.name} đã hoàn tất`
           );
       } else {
-        const data = await this.appService.getUserFcmtoken(result.stepUser);
+        const data = await this.appService.getUserFcmtoken(body.user);
         if (data.data.fcm_tokens)
           this.appService.sendUserNotification(
             data.data.fcm_tokens,
             'Thông báo',
             `Tài liệu ${result.name} đang chờ bạn ký`
           );
+      }
+      try {
+        this.appService.signDocument({
+          PdfPath: result._id + '.pdf',
+          PfxPath: 'nnpsy.pfx',
+          PassWord: '123456',
+          Xfdf: body.xfdf,
+          StepNo: `${result.stepNow}`,
+        });
+      } catch (err) {
+        console.log(err);
       }
       return res.status(HttpStatus.OK).json({
         data: {},
@@ -552,5 +563,18 @@ export class AppController {
       status: 'false',
       message: 'Rename File Failed',
     });
+  }
+
+  @Get('/test')
+  async test(@Res() res) {
+    const data = {
+      PdfPath: 'result.name',
+      PfxPath: 'nnpsy.pfx',
+      PassWord: '123456',
+      Xfdf: 'body.xfdf',
+      StepNo: 'result.stepNow',
+    };
+    const temp = await this.appService.signDocument(data);
+    return res.json({ result: temp });
   }
 }

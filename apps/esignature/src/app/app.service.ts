@@ -70,15 +70,7 @@ export class AppService {
     });
   }
 
-  signPDF(
-    data
-    // pdfPath: string,
-    // pfxPath: string,
-    // passWord: string,
-    // imgPath: string,
-    // sXfdf: string,
-    // stepNo: string
-  ): Observable<any> {
+  signPDF(data: any): Observable<any> {
     return this.httpService.request({
       url: this.signPDFMethod,
       method: 'POST',

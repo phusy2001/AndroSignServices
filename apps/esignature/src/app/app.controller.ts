@@ -9,8 +9,8 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-
 import { AppService } from './app.service';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
 export class AppController {
@@ -53,16 +53,16 @@ export class AppController {
       });
   }
 
-  @Post('/signPDF')
-  @UseInterceptors(FileInterceptor('file'))
-  signPDF(@Res() res, @Body() data) {
+  @MessagePattern('sign_document')
+  async signDocument(data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     this.appService.signPDF(data).subscribe((result) => {
       process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
-      return res.status(HttpStatus.OK).json({
+      return {
         data: result.data,
         message: 'Signed PDF',
-      });
+      };
     });
+    // return data;
   }
 }

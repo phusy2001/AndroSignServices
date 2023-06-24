@@ -6,7 +6,8 @@ import { lastValueFrom } from 'rxjs';
 export class AppService {
   constructor(
     @Inject('USER_SERVICE') private userService: ClientProxy,
-    @Inject('BACKGROUND_SERVICE') private backgroundService: ClientProxy
+    @Inject('BACKGROUND_SERVICE') private backgroundService: ClientProxy,
+    @Inject('ESIGNATURE_SERVICE') private esignatureService: ClientProxy
   ) {}
 
   async getIdByUserEmail(email: string) {
@@ -35,5 +36,15 @@ export class AppService {
         tokens: fcmtokens,
       })
     );
+  }
+
+  async signDocument(data: any) {
+    try {
+      return await lastValueFrom(
+        this.esignatureService.send('sign_document', data)
+      );
+    } catch (err) {
+      console.log(err);
+    }
   }
 }
