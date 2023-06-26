@@ -16,6 +16,27 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @MessagePattern('create_self_ca')
+  async createSelfCA(data: any) {
+    console.log('createSelfCA');
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    const { issued, password, fileName, expireAfter } = data;
+    return this.appService.createSelfCA(
+      issued,
+      password,
+      fileName,
+      expireAfter
+    );
+    // .subscribe((result) => {
+    //   console.log('first', result);
+    //   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+    //   return {
+    //     data: result.data,
+    //     message: 'Created',
+    //   };
+    // });
+  }
+
   @Get()
   getData() {
     return this.appService.getData();
@@ -31,26 +52,6 @@ export class AppController {
         message: 'Connected',
       });
     });
-  }
-
-  @Post('/createSelfCA')
-  createSelfCA(
-    @Res() res,
-    @Query('issued') issued: string,
-    @Query('password') password: string,
-    @Query('fileName') fileName: string,
-    @Query('expireAfter') expireAfter?: number
-  ) {
-    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    this.appService
-      .createSelfCA(issued, password, fileName, expireAfter)
-      .subscribe((result) => {
-        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
-        return res.status(HttpStatus.OK).json({
-          data: result.data,
-          message: 'Created',
-        });
-      });
   }
 
   @MessagePattern('sign_document')

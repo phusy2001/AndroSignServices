@@ -9,7 +9,7 @@ export class AppService {
     this.httpsAgent = new https.Agent({
       rejectUnauthorized: false,
     });
-    this.certHost = 'https://localhost:7207/api/Cer/';
+    this.certHost = 'http://103.95.197.217:3002/api/Cer/';
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFMethod = '/SignPDF';
   }
@@ -23,9 +23,9 @@ export class AppService {
   }
 
   private encrypt(plainText: string): string {
-    let key = CryptoJS.enc.Utf8.parse('4512631236589784');
-    let iv = CryptoJS.enc.Utf8.parse('4512631236589784');
-    var encrypted = CryptoJS.AES.encrypt(
+    const key = CryptoJS.enc.Utf8.parse('4512631236589784');
+    const iv = CryptoJS.enc.Utf8.parse('4512631236589784');
+    const encrypted = CryptoJS.AES.encrypt(
       CryptoJS.enc.Utf8.parse(plainText),
       key,
       {
@@ -38,7 +38,7 @@ export class AppService {
     return encrypted.toString();
   }
   test(): Observable<any> {
-    let cipher = this.encrypt('nhbuu');
+    const cipher = this.encrypt('nhbuu');
     console.log('cipher', cipher);
 
     return this.httpService.request({

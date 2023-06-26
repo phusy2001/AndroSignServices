@@ -1,4 +1,4 @@
-import { MessagePattern } from '@nestjs/microservices';
+import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
 import {
   Controller,
   Get,
@@ -203,6 +203,21 @@ export class UsersController {
       status: 'false',
       message: 'Get User By Email Failed.',
     };
+  }
+
+  @UseGuards(AuthGuard)
+  @Put('/:id/createUserCa')
+  async createUserCa(@Param('id') uid: string, @Body() dto) {
+    const { email, passwordCa, expireAfter } = dto;
+
+    const user = await this.usersService.createUserCa(
+      email,
+      uid,
+      passwordCa,
+      expireAfter
+    );
+
+    return user;
   }
 
   @MessagePattern('get_users_from_list_uid')

@@ -5,12 +5,16 @@ import { Model } from 'mongoose';
 import { User } from './schemas/users.schema';
 import { auth } from 'firebase-admin';
 import { UserRecord } from 'firebase-admin/lib/auth/user-record';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
+import { hash } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
-    @Inject('REDIS_CLIENT') private readonly redisClient: any
+    @Inject('REDIS_CLIENT') private readonly redisClient: any,
+    @Inject('ESIGNATURE_SERVICE') private esignatureService: ClientProxy
   ) {}
 
   async create(dto: CreateUserDto) {
@@ -100,5 +104,37 @@ export class UsersService {
     fcmTokenList?.splice(index, 1);
 
     return this.userModel.updateOne({ uid: uid }, { fcm_tokens: fcmTokenList });
+  }
+
+  async createUserCa(
+    email: string,
+    uid: string,
+    passwordCa: string,
+    expireAfter: number
+  ) {
+    try {
+      const hashedPassword = await hash(passwordCa, 10);
+
+      // await this.userModel.updateOne(
+      //   { uid },
+      //   { password_ca: hashedPassword },
+      //   { new: true }
+      // );
+
+      console.log('hashedPassword', hashedPassword);
+
+      this.esignatureService
+        .send('create_self_ca', {
+          issued: email,
+          password: hashedPassword,
+          fileName: `${uid}.pfx`,
+          expireAfter,
+        })
+        .subscribe((res) => console.log('res', res));
+
+      // return test;
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
