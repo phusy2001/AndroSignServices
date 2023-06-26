@@ -8,6 +8,7 @@ import {
   UploadedFile,
   UseInterceptors,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
@@ -17,8 +18,9 @@ import { FileService } from './services/file.service';
 import { File } from './schemas/file.schema';
 import { S3Service } from './services/s3.service';
 import { FolderService } from './services/folder.service';
-import { UserId } from '@androsign-microservices/shared';
+import { UserId, AuthGuard } from '@androsign-microservices/shared';
 
+@UseGuards(AuthGuard)
 @Controller()
 export class AppController {
   constructor(
@@ -158,7 +160,8 @@ export class AppController {
           StepNo: `${result.stepNow}`,
         })
         .then((result: any) => {
-          console.log(result);
+          if (result.status === 'true')
+            this.fileService.updateXfdfById(body.id, result.data);
         });
       return res.status(HttpStatus.OK).json({
         data: {},
