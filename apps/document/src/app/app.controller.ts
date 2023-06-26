@@ -149,17 +149,17 @@ export class AppController {
             `Tài liệu ${result.name} đang chờ bạn ký`
           );
       }
-      try {
-        this.appService.signDocument({
+      this.appService
+        .signDocument({
           PdfPath: result._id + '.pdf',
           PfxPath: 'nnpsy.pfx',
           PassWord: '123456',
           Xfdf: body.xfdf,
           StepNo: `${result.stepNow}`,
+        })
+        .then((result: any) => {
+          console.log(result);
         });
-      } catch (err) {
-        console.log(err);
-      }
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
@@ -563,18 +563,5 @@ export class AppController {
       status: 'false',
       message: 'Rename File Failed',
     });
-  }
-
-  @Get('/test')
-  async test(@Res() res) {
-    const data = {
-      PdfPath: 'result.name',
-      PfxPath: 'nnpsy.pfx',
-      PassWord: '123456',
-      Xfdf: 'body.xfdf',
-      StepNo: 'result.stepNow',
-    };
-    const temp = await this.appService.signDocument(data);
-    return res.json({ result: temp });
   }
 }

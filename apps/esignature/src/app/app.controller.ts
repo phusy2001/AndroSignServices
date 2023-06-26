@@ -56,13 +56,12 @@ export class AppController {
   @MessagePattern('sign_document')
   async signDocument(data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    this.appService.signPDF(data).subscribe((result) => {
-      process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
-      return {
-        data: result.data,
-        message: 'Signed PDF',
-      };
-    });
-    // return data;
+    const result = await this.appService.signPDF(data);
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+    return {
+      data: result,
+      status: 'true',
+      message: 'Signed PDF',
+    };
   }
 }

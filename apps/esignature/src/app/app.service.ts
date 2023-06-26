@@ -70,13 +70,16 @@ export class AppService {
     });
   }
 
-  signPDF(data: any): Observable<any> {
-    return this.httpService.request({
-      url: this.signPDFMethod,
-      method: 'POST',
-      baseURL: this.certHost,
-      data: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' },
-    });
+  async signPDF(data: any): Promise<any> {
+    const response = await this.httpService
+      .request({
+        url: this.signPDFMethod,
+        method: 'POST',
+        baseURL: this.certHost,
+        data: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .toPromise();
+    return response.data;
   }
 }

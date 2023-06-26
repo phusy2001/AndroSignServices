@@ -39,12 +39,8 @@ export class AppService {
   }
 
   async signDocument(data: any) {
-    try {
-      return await lastValueFrom(
-        this.esignatureService.send('sign_document', data)
-      );
-    } catch (err) {
-      console.log(err);
-    }
+    return await lastValueFrom(
+      this.esignatureService.send('sign_document', data)
+    );
   }
 }
