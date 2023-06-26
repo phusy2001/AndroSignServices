@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import * as https from 'https';
 import * as CryptoJS from 'crypto-js';
-import { Observable } from 'rxjs';
+import { Observable, async, lastValueFrom } from 'rxjs';
 @Injectable()
 export class AppService {
   constructor(private readonly httpService: HttpService) {
@@ -51,23 +51,25 @@ export class AppService {
     });
   }
 
-  createSelfCA(
+  async createSelfCA(
     issued: string,
     password: string,
     fileName: string,
     expireAfter?: number
-  ): Observable<any> {
-    return this.httpService.request({
-      url: this.createCAMethod,
-      method: 'POST',
-      baseURL: this.certHost,
-      params: {
-        issued: issued,
-        password: password,
-        fileName: fileName,
-        expireAfter: expireAfter,
-      },
-    });
+  ): Promise<any> {
+    return await lastValueFrom(
+      this.httpService.request({
+        url: this.createCAMethod,
+        method: 'POST',
+        baseURL: this.certHost,
+        params: {
+          issued: issued,
+          password: password,
+          fileName: fileName,
+          expireAfter: expireAfter,
+        },
+      })
+    );
   }
 
   async signPDF(data: any): Promise<any> {

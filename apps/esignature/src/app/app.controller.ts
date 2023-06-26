@@ -17,24 +17,21 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @MessagePattern('create_self_ca')
-  async createSelfCA(data: any) {
-    console.log('createSelfCA');
+  async createSelfCA(@Payload() data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     const { issued, password, fileName, expireAfter } = data;
-    return this.appService.createSelfCA(
+    const result = await this.appService.createSelfCA(
       issued,
       password,
       fileName,
       expireAfter
     );
-    // .subscribe((result) => {
-    //   console.log('first', result);
-    //   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
-    //   return {
-    //     data: result.data,
-    //     message: 'Created',
-    //   };
-    // });
+
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+    return {
+      data: result.data,
+      message: 'Created',
+    };
   }
 
   @Get()

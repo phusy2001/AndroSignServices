@@ -6,7 +6,7 @@ import { User } from './schemas/users.schema';
 import { auth } from 'firebase-admin';
 import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { defaultIfEmpty, lastValueFrom } from 'rxjs';
 import { hash } from 'bcrypt';
 
 @Injectable()
@@ -121,18 +121,16 @@ export class UsersService {
       //   { new: true }
       // );
 
-      console.log('hashedPassword', hashedPassword);
-
-      this.esignatureService
-        .send('create_self_ca', {
-          issued: email,
-          password: hashedPassword,
-          fileName: `${uid}.pfx`,
-          expireAfter,
-        })
-        .subscribe((res) => console.log('res', res));
-
-      // return test;
+      return await lastValueFrom(
+        this.esignatureService
+          .send('create_self_ca', {
+            issued: email,
+            password: hashedPassword,
+            fileName: `${uid}.pfx`,
+            expireAfter,
+          })
+          .pipe(defaultIfEmpty([]))
+      );
     } catch (error) {
       console.log(error);
     }
