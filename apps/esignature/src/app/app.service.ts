@@ -9,7 +9,7 @@ export class AppService {
     this.httpsAgent = new https.Agent({
       rejectUnauthorized: false,
     });
-    this.certHost = 'http://103.95.197.217:3002/api/Cer/';
+    this.certHost = 'https://localhost:7207/api/Cer';
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFMethod = '/SignPDF';
   }
@@ -73,15 +73,14 @@ export class AppService {
   }
 
   async signPDF(data: any): Promise<any> {
-    const response = await this.httpService
-      .request({
+    return await lastValueFrom(
+      this.httpService.request({
         url: this.signPDFMethod,
         method: 'POST',
         baseURL: this.certHost,
         data: JSON.stringify(data),
         headers: { 'Content-Type': 'application/json' },
       })
-      .toPromise();
-    return response.data;
+    );
   }
 }

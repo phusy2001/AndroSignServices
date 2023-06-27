@@ -82,13 +82,11 @@ export class FileService {
 
   async updateFileById(
     id: string,
-    xfdf: string,
     signed: number,
     stepNow: number,
     stepUser: string
   ) {
     return await this.fileModel.findByIdAndUpdate(id, {
-      xfdf: xfdf,
       signed: signed,
       stepNow: stepNow,
       stepUser: stepUser,

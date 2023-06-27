@@ -12,6 +12,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { AuthGuard } from 'libs/shared/src/lib/guards/auth.guard';
+import { UserId } from '@androsign-microservices/shared';
 
 @Controller('users')
 export class UsersController {
@@ -189,19 +190,27 @@ export class UsersController {
     };
   }
 
+  @UseGuards(AuthGuard)
   @Get('email/:email')
-  async getUserByEmail(@Param('email') email: string) {
+  async getUserByEmail(@Param('email') email: string, @UserId() userId) {
     const user = await this.usersService.findByEmail(email);
-    if (user)
+    if (user) {
+      if (user.uid !== userId)
+        return {
+          data: user,
+          status: 'true',
+          message: 'Get User By Email Successfully',
+        };
       return {
-        data: user,
-        status: 'true',
-        message: 'Get User By Email Successfully.',
+        data: {},
+        status: 'false',
+        message: 'Cannot add yourself',
       };
+    }
     return {
       data: {},
       status: 'false',
-      message: 'Get User By Email Failed.',
+      message: 'Get User By Email Failed',
     };
   }
 

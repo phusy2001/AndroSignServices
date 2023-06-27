@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
+import { defaultIfEmpty, lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class AppService {
@@ -28,13 +28,15 @@ export class AppService {
 
   async sendUserNotification(fcmtokens: string[], title: string, body: string) {
     return await lastValueFrom(
-      this.backgroundService.send('send_to_multicast', {
-        data: {
-          title,
-          body,
-        },
-        tokens: fcmtokens,
-      })
+      this.backgroundService
+        .send('send_to_multicast', {
+          data: {
+            title,
+            body,
+          },
+          tokens: fcmtokens,
+        })
+        .pipe(defaultIfEmpty([]))
     );
   }
 

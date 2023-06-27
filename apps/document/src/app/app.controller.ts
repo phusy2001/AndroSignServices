@@ -127,7 +127,6 @@ export class AppController {
   async editFile(@Res() res, @UserId() userId, @Body() body) {
     const result = await this.fileService.updateFileById(
       body.id,
-      body.xfdf,
       body.signed,
       body.step,
       body.user
@@ -160,8 +159,8 @@ export class AppController {
           StepNo: `${result.stepNow}`,
         })
         .then((result: any) => {
-          if (result.status === 'true')
-            this.fileService.updateXfdfById(body.id, result.data);
+          // if (result.status === 'true')
+          //   this.fileService.updateXfdfById(body.id, result.data);
         });
       return res.status(HttpStatus.OK).json({
         data: {},

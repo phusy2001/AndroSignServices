@@ -56,10 +56,16 @@ export class AppController {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     const result = await this.appService.signPDF(data);
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+    if (result.data.status)
+      return {
+        data: result.data.data,
+        status: 'true',
+        message: 'Signed PDF Successfully',
+      };
     return {
-      data: result,
-      status: 'true',
-      message: 'Signed PDF',
+      data: {},
+      status: 'false',
+      message: 'Signed PDF Failed',
     };
   }
 }
