@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 enum Status {
   SUCCESS,
@@ -8,7 +9,12 @@ enum Status {
 
 @Schema()
 export class Order {
-  @Prop({ required: true })
+  @Prop({
+    type: String,
+    default: function genUUID() {
+      return uuidv4();
+    },
+  })
   order_id: number;
 
   @Prop({ required: true })

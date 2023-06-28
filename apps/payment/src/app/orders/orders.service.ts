@@ -6,8 +6,6 @@ import moment from 'moment';
 import CryptoJS from 'crypto-js';
 import qs from 'qs';
 import { Order } from './entities/order.entity';
-import { ClientProxy } from '@nestjs/microservices';
-import { lastValueFrom } from 'rxjs';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
@@ -19,33 +17,22 @@ export class OrdersService {
     endpoint: 'https://sb-openapi.zalopay.vn/v2/create',
   };
 
-  constructor(
-    @InjectModel(Order.name) private orderModel: Model<Order>,
-    @Inject('REDIS_CLIENT') private readonly redisClient: any,
-    @Inject('USER_SERVICE') private readonly clientProxy: ClientProxy
-  ) {}
-
-  async test() {
-    const user = await this.redisClient.get('user');
-    if (user) {
-      console.log('Cached', user);
-      await this.redisClient.del('user');
-    } else {
-      const tempUser = await lastValueFrom(
-        this.clientProxy.send('get_user_by_email', '2121@gmail.com')
-      );
-      await this.redisClient.set('user', JSON.stringify(tempUser));
-      console.log('new User', user);
-    }
-  }
+  constructor(@InjectModel(Order.name) private orderModel: Model<Order>) {}
 
   async create(orderDto: CreateOrderDto) {
     // APP INFO
-
-    const embed_data = {};
-
     const items = [{}];
     const transID = Math.floor(Math.random() * 1000000);
+    const embed_data = { promotioninfo: '', merchantinfo: 'embeddata123' };
+    const item = [
+      {
+        itemid: orderDto.plan_id,
+        itemname: 'kim nguyen bao',
+        itemprice: 198400,
+        itemquantity: 1,
+      },
+    ];
+
     const order = {
       app_id: this.config.app_id,
       app_trans_id: `${moment().format('YYMMDD')}_${orderDto.order_id}`, // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
@@ -53,7 +40,7 @@ export class OrdersService {
       app_time: Date.now(), // miliseconds
       item: JSON.stringify(items),
       embed_data: JSON.stringify(embed_data),
-      amount: 33000,
+      amount: orderDto.total_price,
       description: `Gói 1 tháng - Payment for the order #${transID}`,
       bank_code: 'zalopayapp',
       mac: '',
@@ -77,7 +64,6 @@ export class OrdersService {
       '|' +
       order.item;
     order.mac = CryptoJS.HmacSHA256(data, this.config.key1).toString();
-
     return await axios.post(this.config.endpoint, null, { params: order });
   }
 

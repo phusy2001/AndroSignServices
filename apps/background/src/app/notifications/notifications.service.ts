@@ -17,7 +17,7 @@ export class NotificationsService {
     });
   }
 
-  sendMulticast(data, token: string[]) {
+  sendMulticast(data, tokens: string[]) {
     return admin.messaging().sendEachForMulticast({
       data: {
         title: data.title,
@@ -26,7 +26,7 @@ export class NotificationsService {
       android: {
         priority: 'high',
       },
-      tokens: token,
+      tokens: tokens,
     });
   }
 }
