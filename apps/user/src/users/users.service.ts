@@ -115,13 +115,7 @@ export class UsersService {
     try {
       const hashedPassword = await hash(passwordCa, 10);
 
-      // await this.userModel.updateOne(
-      //   { uid },
-      //   { password_ca: hashedPassword },
-      //   { new: true }
-      // );
-
-      return await lastValueFrom(
+      const data = await lastValueFrom(
         this.esignatureService
           .send('create_self_ca', {
             issued: email,
@@ -131,6 +125,22 @@ export class UsersService {
           })
           .pipe(defaultIfEmpty([]))
       );
+
+      if (data.message === 'Created') {
+        const result = await this.userModel.findOneAndUpdate(
+          { uid },
+          { password_ca: hashedPassword },
+          { new: true }
+        );
+
+        return result;
+      }
+
+      return {
+        data: {},
+        status: 'false',
+        message: 'Tạo CA không thành công',
+      };
     } catch (error) {
       console.log(error);
     }
