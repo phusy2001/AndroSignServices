@@ -34,9 +34,14 @@ export class UsersService {
   }
 
   async find(uid: string) {
-    const user = await this.userModel
-      .findOne({ uid })
-      .select({ display_name: 1, email: 1, fcm_tokens: 1 });
+    const user = await this.userModel.findOne({ uid }).select({
+      display_name: 1,
+      email: 1,
+      fcm_tokens: 1,
+      uid: 1,
+      phone_number: 1,
+      address: 1,
+    });
 
     await this.redisClient.set('user', JSON.stringify(user));
 
@@ -68,7 +73,9 @@ export class UsersService {
   }
 
   async update(uid: string, dto: UpdateUserDto) {
-    const user = await this.userModel.updateOne({ uid }, dto, { new: true });
+    const user = await this.userModel.findOneAndUpdate({ uid }, dto, {
+      new: true,
+    });
 
     await this.redisClient.set('user', JSON.stringify(user));
 

@@ -94,13 +94,11 @@ export class UsersController {
 
     const result = await this.usersService.update(uid, dto);
 
-    if (result.acknowledged === true) {
-      const updatedUser = await this.usersService.find(uid);
-
+    if (result) {
       return {
-        data: updatedUser,
+        data: result,
         status: 'true',
-        message: `Cập nhật người dùng với id ${uid} thành công`,
+        message: `Cập nhật người dùng thành công`,
       };
     }
 
