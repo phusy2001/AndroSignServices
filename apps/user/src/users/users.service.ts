@@ -7,7 +7,6 @@ import { auth } from 'firebase-admin';
 import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 import { ClientProxy } from '@nestjs/microservices';
 import { defaultIfEmpty, lastValueFrom } from 'rxjs';
-import { hash } from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -120,13 +119,15 @@ export class UsersService {
     expireAfter: number
   ) {
     try {
-      const hashedPassword = await hash(passwordCa, 10);
+      const encryptedPasswordCa = await lastValueFrom(
+        this.esignatureService.send('encrypt_password_ca', passwordCa)
+      );
 
       const data = await lastValueFrom(
         this.esignatureService
           .send('create_self_ca', {
             issued: email,
-            password: hashedPassword,
+            password: encryptedPasswordCa.data,
             fileName: `${uid}.pfx`,
             expireAfter,
           })
@@ -136,7 +137,7 @@ export class UsersService {
       if (data.message === 'Created') {
         const result = await this.userModel.findOneAndUpdate(
           { uid },
-          { password_ca: hashedPassword },
+          { password_ca: encryptedPasswordCa.data },
           { new: true }
         );
 

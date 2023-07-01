@@ -34,6 +34,19 @@ export class AppController {
     };
   }
 
+  @MessagePattern('encrypt_password_ca')
+  async encrypt(@Payload() plainText: string) {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    const result = await this.appService.encrypt(plainText);
+
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+    return {
+      data: result,
+      status: 'true',
+      message: 'Encrypt password successfully',
+    };
+  }
+
   @Get()
   getData() {
     return this.appService.getData();

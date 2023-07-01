@@ -212,19 +212,26 @@ export class UsersController {
     };
   }
 
-  @UseGuards(AuthGuard)
   @Put('/:id/createUserCa')
   async createUserCa(@Param('id') uid: string, @Body() dto) {
-    const { email, passwordCa, expireAfter } = dto;
+    try {
+      const { email, passwordCa, expireAfter } = dto;
 
-    const user = await this.usersService.createUserCa(
-      email,
-      uid,
-      passwordCa,
-      expireAfter
-    );
+      const user = await this.usersService.createUserCa(
+        email,
+        uid,
+        passwordCa,
+        expireAfter
+      );
 
-    return user;
+      return {
+        data: user,
+        status: 'true',
+        message: 'Create User Ca successfully',
+      };
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   @MessagePattern('get_users_from_list_uid')

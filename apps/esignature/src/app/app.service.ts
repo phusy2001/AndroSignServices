@@ -2,14 +2,14 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import * as https from 'https';
 import * as CryptoJS from 'crypto-js';
-import { Observable, async, lastValueFrom } from 'rxjs';
+import { Observable, lastValueFrom } from 'rxjs';
 @Injectable()
 export class AppService {
   constructor(private readonly httpService: HttpService) {
     this.httpsAgent = new https.Agent({
       rejectUnauthorized: false,
     });
-    this.certHost = 'https://localhost:7207/api/Cer';
+    this.certHost = 'http://103.95.197.217:3002/api/Cer';
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFMethod = '/SignPDF';
   }
@@ -22,7 +22,7 @@ export class AppService {
     return { message: 'Welcome to esignature!' };
   }
 
-  private encrypt(plainText: string): string {
+  encrypt(plainText: string): string {
     const key = CryptoJS.enc.Utf8.parse('4512631236589784');
     const iv = CryptoJS.enc.Utf8.parse('4512631236589784');
     const encrypted = CryptoJS.AES.encrypt(
@@ -37,9 +37,9 @@ export class AppService {
     );
     return encrypted.toString();
   }
+
   test(): Observable<any> {
     const cipher = this.encrypt('nhbuu');
-    console.log('cipher', cipher);
 
     return this.httpService.request({
       url: '',
