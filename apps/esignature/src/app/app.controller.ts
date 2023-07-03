@@ -19,12 +19,21 @@ export class AppController {
   @MessagePattern('create_self_ca')
   async createSelfCA(@Payload() data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    const { issued, password, fileName, expireAfter } = data;
+    const {
+      issued,
+      password,
+      fileName,
+      expireAfter = 0,
+      isUpdate = false,
+      newPass = '',
+    } = data;
     const result = await this.appService.createSelfCA(
       issued,
       password,
       fileName,
-      expireAfter
+      expireAfter,
+      isUpdate,
+      newPass
     );
 
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';

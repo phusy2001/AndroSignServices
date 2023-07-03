@@ -45,4 +45,10 @@ export class AppService {
       this.esignatureService.send('sign_document', data)
     );
   }
+
+  async encryptPassword(password: string) {
+    return await lastValueFrom(
+      this.esignatureService.send('encrypt_password_ca', password)
+    );
+  }
 }

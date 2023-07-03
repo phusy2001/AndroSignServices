@@ -9,7 +9,7 @@ export class AppService {
     this.httpsAgent = new https.Agent({
       rejectUnauthorized: false,
     });
-    this.certHost = 'http://103.95.197.217:3002/api/Cer';
+    this.certHost = 'https://localhost:7207/api/Cer';
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFMethod = '/SignPDF';
   }
@@ -55,7 +55,9 @@ export class AppService {
     issued: string,
     password: string,
     fileName: string,
-    expireAfter?: number
+    expireAfter?: number,
+    isUpdate?: boolean,
+    newPass?: string
   ): Promise<any> {
     return await lastValueFrom(
       this.httpService.request({
@@ -67,6 +69,8 @@ export class AppService {
           password: password,
           fileName: fileName,
           expireAfter: expireAfter,
+          isUpdate: isUpdate,
+          newPass: newPass,
         },
       })
     );

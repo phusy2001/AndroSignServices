@@ -197,18 +197,18 @@ export class UsersController {
         return {
           data: user,
           status: 'true',
-          message: 'Get User By Email Successfully',
+          message: 'Người dùng được thêm vào tài liệu thành công',
         };
       return {
         data: {},
         status: 'false',
-        message: 'Cannot add yourself',
+        message: 'Không thể thêm bản thân người dùng',
       };
     }
     return {
       data: {},
       status: 'false',
-      message: 'Get User By Email Failed',
+      message: 'Rất tiếc, không tìm thấy thông tin người dùng',
     };
   }
 
@@ -228,6 +228,28 @@ export class UsersController {
         data: user,
         status: 'true',
         message: 'Create User Ca successfully',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @Put('/:id/updateUserCa')
+  async updateUserCa(@Param('id') uid: string, @Body() dto) {
+    try {
+      const { email, nPasswordCa, oPasswordCa } = dto;
+      const result = await this.usersService.updateUserCa(
+        email,
+        uid,
+        nPasswordCa,
+        oPasswordCa
+      );
+      return {
+        data: {},
+        status: result.status ? 'true' : 'false',
+        message: result.status
+          ? 'Thay đổi mật khẩu bảo vệ thành công'
+          : 'Thay đổi mật khẩu bảo vệ thất bại',
       };
     } catch (error) {
       console.log(error);

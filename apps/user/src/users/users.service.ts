@@ -153,4 +153,34 @@ export class UsersService {
       console.log(error);
     }
   }
+
+  async updateUserCa(
+    email: string,
+    uid: string,
+    nPasswordCa: string,
+    oPasswordCa: string
+  ) {
+    try {
+      const encryptedOPasswordCa = await lastValueFrom(
+        this.esignatureService.send('encrypt_password_ca', oPasswordCa)
+      );
+      const encryptedNPasswordCa = await lastValueFrom(
+        this.esignatureService.send('encrypt_password_ca', nPasswordCa)
+      );
+      const data = await lastValueFrom(
+        this.esignatureService
+          .send('create_self_ca', {
+            issued: email,
+            password: encryptedOPasswordCa.data,
+            fileName: `${uid}.pfx`,
+            isUpdate: true,
+            newPass: encryptedNPasswordCa.data,
+          })
+          .pipe(defaultIfEmpty([]))
+      );
+      return data;
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

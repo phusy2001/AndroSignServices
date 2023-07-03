@@ -55,13 +55,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Upload File Successfully',
+        message: 'Tài liệu được tải lên thành công',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Upload File Failed',
+      message: 'Tài liệu tải lên thất bại',
     });
   }
 
@@ -73,13 +73,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Deleted File Successfully',
+        message: 'Tài liệu đã được chuyển vào thùng rác',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Deleted File Failed',
+      message: 'Xóa tài liệu thất bại',
     });
   }
 
@@ -106,7 +106,7 @@ export class AppController {
         data: objects,
       },
       status: 'true',
-      message: 'Get File Successfully',
+      message: 'Lấy thông tin tài liệu của tôi thành công',
     });
   }
 
@@ -119,59 +119,59 @@ export class AppController {
         data: object,
       },
       status: 'true',
-      message: 'Get File Successfully',
+      message: 'Lấy thông tin tài liệu thành công',
     });
   }
 
   @Post('/editFile')
   async editFile(@Res() res, @UserId() userId, @Body() body) {
-    const result = await this.fileService.updateFileById(
-      body.id,
-      body.signed,
-      body.step,
-      body.user
-    );
-    if (result) {
-      this.fileService.updateFileHistory(body.id, userId, 'save');
-      if (result.stepIndex + 1 === result.stepTotal) {
-        const data = await this.appService.getUserFcmtoken(result.user);
-        if (data.data.fcm_tokens)
-          this.appService.sendUserNotification(
-            data.data.fcm_tokens,
-            'Thông báo',
-            `Tài liệu ${result.name} đã hoàn tất`
-          );
-      } else {
-        const data = await this.appService.getUserFcmtoken(body.user);
-        if (data.data.fcm_tokens)
-          this.appService.sendUserNotification(
-            data.data.fcm_tokens,
-            'Thông báo',
-            `Tài liệu ${result.name} đang chờ bạn ký`
-          );
-      }
-      this.appService
-        .signDocument({
-          PdfPath: result._id + '.pdf',
-          PfxPath: 'nnpsy.pfx',
-          PassWord: '123456',
-          Xfdf: body.xfdf,
-          StepNo: `${result.stepNow}`,
-        })
-        .then((result: any) => {
-          // if (result.status === 'true')
-          //   this.fileService.updateXfdfById(body.id, result.data);
+    const password = await this.appService.encryptPassword(body.passCa);
+    const result = await this.appService.signDocument({
+      PdfPath: body.id + '.pdf',
+      PfxPath: userId + '.pfx',
+      PassWord: password.data,
+      Xfdf: body.xfdf,
+      StepNo: `${body.stepOld}`,
+    });
+    if (result.status === 'true') {
+      const object = await this.fileService.updateFileById(
+        body.id,
+        body.signed,
+        body.step,
+        body.user
+      );
+      if (object) {
+        this.fileService.updateFileHistory(body.id, userId, 'save');
+        if (object.stepIndex + 1 === object.stepTotal) {
+          this.appService.getUserFcmtoken(object.user).then((data: any) => {
+            if (data.data.fcm_tokens)
+              this.appService.sendUserNotification(
+                data.data.fcm_tokens,
+                'Thông báo',
+                `Tài liệu ${object.name} đã hoàn tất`
+              );
+          });
+        } else {
+          this.appService.getUserFcmtoken(body.user).then((data: any) => {
+            if (data.data.fcm_tokens)
+              this.appService.sendUserNotification(
+                data.data.fcm_tokens,
+                'Thông báo',
+                `Tài liệu ${object.name} đang chờ bạn ký`
+              );
+          });
+        }
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Tài liệu đã ký thành công',
         });
-      return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'true',
-        message: 'Update File Successfully',
-      });
+      }
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Update File Failed',
+      message: 'Xác nhận ký tài liệu thất bại',
     });
   }
 
@@ -184,7 +184,7 @@ export class AppController {
         return res.status(HttpStatus.OK).json({
           data: {},
           status: 'false',
-          message: 'Cannot share document to yourself',
+          message: 'Người dùng chia sẻ phải là người dùng khác bản thân',
         });
       const result = await this.fileService.addUserToSharedFile(uid, body.id);
       if (result) {
@@ -198,14 +198,14 @@ export class AppController {
         return res.status(HttpStatus.OK).json({
           data: {},
           status: 'true',
-          message: 'Add User To File Successfully',
+          message: 'Chia sẻ tài liệu cho người dùng thành công',
         });
       }
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Add User To File Failed',
+      message: 'Tài liệu được chia sẻ thất bại',
     });
   }
 
@@ -219,13 +219,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Delete User From File Successfully',
+        message: 'Xóa người dùng được chia sẻ thành công',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Delete User From File Failed',
+      message: 'Xóa người dùng được chia sẻ thất bại',
     });
   }
 
@@ -240,7 +240,7 @@ export class AppController {
     return res.status(HttpStatus.OK).json({
       data: objects.sharedTo.length > 0 ? result.data : [],
       status: 'true',
-      message: 'Get User File Shared Successfully',
+      message: 'Lấy thông tin người dùng chia sẻ của tài liệu thành công',
     });
   }
 
@@ -267,7 +267,7 @@ export class AppController {
         data: objects,
       },
       status: 'true',
-      message: 'Get User File Shared Successfully',
+      message: 'Lấy thông tin tài liệu được chia sẻ thành công',
     });
   }
 
@@ -278,13 +278,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Create Folder Successfully',
+        message: 'Thư mục mới đã được tạo thành công',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Create Folder Failed',
+      message: 'Tạo thư mục mới thất bại',
     });
   }
 
@@ -309,7 +309,7 @@ export class AppController {
         data: objects,
       },
       status: 'true',
-      message: 'Get Folders Successfully',
+      message: 'Lấy danh sách thư mục thành công',
     });
   }
 
@@ -320,13 +320,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Delete Folder Successfully',
+        message: 'Thư mục đã xóa thành công',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Delete Folder Failed',
+      message: 'Xóa thư mục thất bại',
     });
   }
 
@@ -348,7 +348,7 @@ export class AppController {
     return res.status(HttpStatus.OK).json({
       data: { data: objects },
       status: 'true',
-      message: 'Get Files In Folder Successfully',
+      message: 'Lấy danh sách tài liệu trong thư mục thành công',
     });
   }
 
@@ -358,27 +358,33 @@ export class AppController {
       body.fileId,
       body.folderId
     );
-    let result = {};
-    if (checkExisted)
-      result = await this.folderService.removeFileFromFolder(
+    if (checkExisted) {
+      const result = await this.folderService.removeFileFromFolder(
         body.fileId,
         body.folderId
       );
-    else
-      result = await this.folderService.addFileToFolder(
+      if (result)
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Tài liệu đã được xóa khỏi thư mục',
+        });
+    } else {
+      const result = await this.folderService.addFileToFolder(
         body.fileId,
         body.folderId
       );
-    if (result)
-      return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'true',
-        message: 'Update File In Folder Successfully',
-      });
+      if (result)
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Tài liệu đã được thêm vào thư mục',
+        });
+    }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Update File In Folder Failed',
+      message: 'Cập nhật tài liệu trong thư mục thất bại',
     });
   }
 
@@ -399,7 +405,7 @@ export class AppController {
         data: objects,
       },
       status: 'true',
-      message: 'Get Folder List Successfully',
+      message: 'Lấy danh sách thư mục thành công',
     });
   }
 
@@ -410,13 +416,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Mark File Successfully',
+        message: 'Đã gắn sao cho tài liệu',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Mark File Failed',
+      message: 'Gắn sao cho tài liệu thất bại',
     });
   }
 
@@ -427,13 +433,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Unmark File Successfully',
+        message: 'Tài liệu đã được gỡ sao',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Unmark File Failed',
+      message: 'Gỡ sao cho tài liệu thất bại',
     });
   }
 
@@ -460,7 +466,7 @@ export class AppController {
         data: objects,
       },
       status: 'true',
-      message: 'Get Starred Files Successfully',
+      message: 'Lấy danh sách tài liệu gắn sao thành công',
     });
   }
 
@@ -485,7 +491,7 @@ export class AppController {
         data: objects,
       },
       status: 'true',
-      message: 'Get Deleted Files Successfully',
+      message: 'Lấy danh sách tài liệu bị xóa thành công',
     });
   }
 
@@ -497,13 +503,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Restore File Successfully',
+        message: 'Phục hồi tài liệu thành công',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Restore File Failed',
+      message: 'Phục hồi tài liệu thất bại',
     });
   }
 
@@ -515,13 +521,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Delete File Permanently Successfully',
+        message: 'Tài liệu đã được xóa khỏi hệ thống',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Delete File Permanently Failed',
+      message: 'Xóa vĩnh viễn tài liệu thất bại',
     });
   }
 
@@ -546,7 +552,7 @@ export class AppController {
         data: object.history,
       },
       status: 'true',
-      message: 'Get File History Successfully',
+      message: 'Lấy lịch sử thay đổi tài liệu thành công',
     });
   }
 
@@ -557,13 +563,13 @@ export class AppController {
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
-        message: 'Rename File Successfully',
+        message: 'Đổi tên tài liệu thành công',
       });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Rename File Failed',
+      message: 'Đổi tên tài liệu thất bại',
     });
   }
 }
