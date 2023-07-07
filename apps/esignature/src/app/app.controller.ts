@@ -85,7 +85,7 @@ export class AppController {
         message: 'Signed PDF Successfully',
       };
     return {
-      data: {},
+      data: result.data,
       status: 'false',
       message: 'Signed PDF Failed',
     };
