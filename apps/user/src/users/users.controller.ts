@@ -246,8 +246,8 @@ export class UsersController {
       );
       return {
         data: {},
-        status: result.status ? 'true' : 'false',
-        message: result.status
+        status: result.data.status ? 'true' : 'false',
+        message: result.data.status
           ? 'Thay đổi mật khẩu bảo vệ thành công'
           : 'Thay đổi mật khẩu bảo vệ thất bại',
       };

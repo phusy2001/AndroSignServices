@@ -171,7 +171,7 @@ export class AppController {
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Xác nhận ký tài liệu thất bại',
+      message: result.data.error,
     });
   }
 
