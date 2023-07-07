@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -7,6 +7,7 @@ import CryptoJS from 'crypto-js';
 import qs from 'qs';
 import { Order } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { PlansService } from '../plans/plans.service';
 
 @Injectable()
 export class OrdersService {
@@ -17,31 +18,39 @@ export class OrdersService {
     endpoint: 'https://sb-openapi.zalopay.vn/v2/create',
   };
 
-  constructor(@InjectModel(Order.name) private orderModel: Model<Order>) {}
+  constructor(
+    @InjectModel(Order.name) private orderModel: Model<Order>,
+    private planService: PlansService
+  ) {}
 
   async create(orderDto: CreateOrderDto) {
     // APP INFO
+    const plan = await this.planService.getPlanById(orderDto.plan_id);
+
     const items = [{}];
     const transID = Math.floor(Math.random() * 1000000);
-    const embed_data = { promotioninfo: '', merchantinfo: 'embeddata123' };
     const item = [
       {
-        itemid: orderDto.plan_id,
-        itemname: 'kim nguyen bao',
-        itemprice: 198400,
+        itemid: plan.plan_id,
+        itemname: plan.plan_name,
+        itemprice: plan.plan_price,
         itemquantity: 1,
       },
     ];
+    const embed_data = {
+      promotioninfo: '',
+      merchantinfo: JSON.stringify(item),
+    };
 
     const order = {
       app_id: this.config.app_id,
-      app_trans_id: `${moment().format('YYMMDD')}_${orderDto.order_id}`, // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
+      app_trans_id: `${moment().format('YYMMDD')}_${transID}`, // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
       app_user: orderDto.user_id,
       app_time: Date.now(), // miliseconds
       item: JSON.stringify(items),
       embed_data: JSON.stringify(embed_data),
-      amount: orderDto.total_price,
-      description: `Gói 1 tháng - Payment for the order #${transID}`,
+      amount: plan.plan_price,
+      description: `Androsign - ${plan.plan_name} - Payment for the order #${transID}`,
       bank_code: 'zalopayapp',
       mac: '',
     };
@@ -64,7 +73,26 @@ export class OrdersService {
       '|' +
       order.item;
     order.mac = CryptoJS.HmacSHA256(data, this.config.key1).toString();
-    return await axios.post(this.config.endpoint, null, { params: order });
+
+    const res = await axios.post(this.config.endpoint, null, {
+      params: order,
+    });
+
+    const orderData = new Order();
+
+    orderData.user_id = orderDto.user_id;
+    orderData.order_id = order.app_trans_id;
+    orderData.plan_id = orderDto.plan_id;
+    orderData.status = 2;
+    orderData.total_tax = 0;
+    orderData.total_price = plan.plan_price;
+
+    // const orderDataTemp = await this.orderModel.create(orderData);
+    // orderDataTemp.save();
+
+    console.log(res);
+
+    return { order_url: res.data.order_url, app_trans_id: orderData.order_id };
   }
 
   async getStatus(app_trans_id: string) {
@@ -100,5 +128,9 @@ export class OrdersService {
     order.status = status_code;
     await order.save();
     return order;
+  }
+
+  async getOrder(order_id: string) {
+    return await this.orderModel.findOne({ order_id });
   }
 }
