@@ -15,7 +15,7 @@ export class S3Service {
   async upload(data: Buffer, key: string) {
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: String(key),
+      Key: 'documents/' + String(key),
       Body: data,
       ContentEncoding: 'base64',
       ACL: 'public-read',
@@ -27,7 +27,7 @@ export class S3Service {
   async delete(key: string) {
     const params = {
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: String(key),
+      Key: 'documents/' + String(key),
     };
     const result = await this.s3.deleteObject(params).promise();
     return result;
