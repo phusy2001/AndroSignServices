@@ -25,7 +25,7 @@ export class AppController {
       fileName,
       expireAfter = 0,
       isUpdate = false,
-      newPass = '',
+      newPass = 'null',
     } = data;
     const result = await this.appService.createSelfCA(
       issued,
