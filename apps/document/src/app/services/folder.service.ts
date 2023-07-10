@@ -87,4 +87,11 @@ export class FolderService {
       .limit(numLimit)
       .skip((offset - 1) * numLimit);
   }
+
+  async findNameByUser(userId: string, name: string) {
+    return await this.folderModel.findOne(
+      { user: userId, name: name },
+      { name: 1 }
+    );
+  }
 }

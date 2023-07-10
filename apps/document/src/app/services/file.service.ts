@@ -341,4 +341,11 @@ export class FileService {
   async updateXfdfById(id: string, xfdf: string) {
     return await this.fileModel.findByIdAndUpdate(id, { xfdf: xfdf });
   }
+
+  async findNameByUser(userId: string, name: string) {
+    return await this.fileModel.findOne(
+      { user: userId, name: name },
+      { name: 1 }
+    );
+  }
 }
