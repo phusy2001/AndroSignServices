@@ -581,19 +581,57 @@ export class AppController {
   }
 
   @Post('/renameFile')
-  async renameFile(@Res() res, @Body() body) {
-    const result = await this.fileService.renameFile(body.id, body.name);
-    if (result) {
+  async renameFile(@Res() res, @UserId() userId, @Body() body) {
+    const isExisted = await this.fileService.findNameByUser(userId, body.name);
+    if (isExisted) {
       return res.status(HttpStatus.OK).json({
         data: {},
-        status: 'true',
-        message: 'Đổi tên tài liệu thành công',
+        status: 'false',
+        message: 'Tên tài liệu đã tồn tại',
+      });
+    } else {
+      const result = await this.fileService.renameFile(body.id, body.name);
+      if (result) {
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Đổi tên tài liệu thành công',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Đổi tên tài liệu thất bại',
       });
     }
-    return res.status(HttpStatus.OK).json({
-      data: {},
-      status: 'false',
-      message: 'Đổi tên tài liệu thất bại',
-    });
+  }
+
+  @Post('/renameFolder')
+  async renameFolder(@Res() res, @UserId() userId, @Body() body) {
+    const isExisted = await this.folderService.findNameByUser(
+      userId,
+      body.name
+    );
+    if (isExisted) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Tên thư mục đã tồn tại',
+      });
+    } else {
+      const result = await this.folderService.renameFolder(body.id, body.name);
+      if (result) {
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Đổi tên thư mục thành công',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Đổi tên thư mục thất bại',
+      });
+    }
   }
 }
