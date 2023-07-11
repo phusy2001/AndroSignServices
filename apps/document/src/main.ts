@@ -25,7 +25,7 @@ async function bootstrap() {
         )}:${configService.get<string>('RABBITMQ_PORT')}`,
       ],
       queue: 'document_queue',
-      noAck: false,
+      noAck: true,
       queueOptions: {
         durable: true,
       },
