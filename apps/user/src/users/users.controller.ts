@@ -79,6 +79,25 @@ export class UsersController {
     };
   }
 
+  @Get(':id/get-created-date')
+  async getCreatedDate(@Param('id') uid: string) {
+    const user = await this.usersService.getCreatedDate(uid);
+
+    if (user) {
+      return {
+        data: user,
+        status: 'true',
+        message: `Lấy ngày tạo với id ${uid} thành công`,
+      };
+    }
+
+    return {
+      data: {},
+      status: 'false',
+      message: `Lấy ngày tạo với id ${uid} thất bại`,
+    };
+  }
+
   @Put(':id')
   @UseGuards(AuthGuard)
   async update(@Param('id') uid: string, @Body() dto: UpdateUserDto) {
