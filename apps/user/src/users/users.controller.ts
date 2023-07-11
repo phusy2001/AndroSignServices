@@ -214,7 +214,6 @@ export class UsersController {
   @Put('/:id/createUserCa')
   async createUserCa(@Param('id') uid: string, @Body() dto) {
     try {
-      console.log('dto', dto);
       const { email, passwordCa, expireAfter } = dto;
 
       const user = await this.usersService.createUserCa(
