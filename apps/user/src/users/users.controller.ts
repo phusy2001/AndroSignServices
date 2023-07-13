@@ -282,6 +282,26 @@ export class UsersController {
     }
   }
 
+  @Get('/:email/getAdminInfo')
+  async getAdminInfo(@Param('email') email) {
+    try {
+      const result = await this.usersService.getAdminInfo(email);
+      if (result)
+        return {
+          data: result,
+          status: 'true',
+          message: 'Lấy thông tin Admin thành công',
+        };
+      return {
+        data: {},
+        status: 'false',
+        message: 'Lấy thông tin Admin thất bại',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);

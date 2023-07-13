@@ -191,4 +191,11 @@ export class UsersService {
       console.log(error);
     }
   }
+
+  async getAdminInfo(email: string) {
+    return await this.userModel.findOne(
+      { email: email, role: 'admin' },
+      { display_name: 1, phone_number: 1, address: 1 }
+    );
+  }
 }
