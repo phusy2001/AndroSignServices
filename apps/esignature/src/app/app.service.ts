@@ -90,7 +90,7 @@ export class AppService {
     );
   }
 
-  async convertFile(fullName:string): Promise<any> {
+  async convertFile(fullName: string): Promise<any> {
     return await lastValueFrom(
       this.httpService.request({
         url: this.convertMethod,
@@ -99,7 +99,6 @@ export class AppService {
         data: {
           fullName: fullName,
         },
-        headers: { 'Content-Type': 'application/json' },
       })
     );
   }

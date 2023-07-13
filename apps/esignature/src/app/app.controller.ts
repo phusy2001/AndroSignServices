@@ -91,7 +91,7 @@ export class AppController {
     };
   }
 
-  @MessagePattern('convert_file')
+  @MessagePattern('toPdf')
   async convertFile(fullName: string) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     const result = await this.appService.convertFile(fullName);
