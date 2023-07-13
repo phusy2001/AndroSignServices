@@ -12,10 +12,12 @@ export class AppService {
     this.certHost = 'https://localhost:7207/api/Cer';
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFMethod = '/SignPDF';
+    this.convertMethod = '/ToPdf';
   }
   private certHost: string;
   private createCAMethod: string;
   private signPDFMethod: string;
+  private convertMethod: string;
   private httpsAgent: https.Agent;
 
   getData(): { message: string } {
@@ -83,6 +85,20 @@ export class AppService {
         method: 'POST',
         baseURL: this.certHost,
         data: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
+  }
+
+  async convertFile(fullName:string): Promise<any> {
+    return await lastValueFrom(
+      this.httpService.request({
+        url: this.convertMethod,
+        method: 'POST',
+        baseURL: this.certHost,
+        data: {
+          fullName: fullName,
+        },
         headers: { 'Content-Type': 'application/json' },
       })
     );

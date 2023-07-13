@@ -90,4 +90,22 @@ export class AppController {
       message: 'Signed PDF Failed',
     };
   }
+
+  @MessagePattern('convert_file')
+  async convertFile(fullName: string) {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    const result = await this.appService.convertFile(fullName);
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+    if (result.data.status)
+      return {
+        data: result.data.data,
+        status: 'true',
+        message: 'Converted',
+      };
+    return {
+      data: {},
+      status: 'false',
+      message: 'Signed PDF Failed',
+    };
+  }
 }
