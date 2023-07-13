@@ -47,6 +47,14 @@ export class UsersService {
     return user;
   }
 
+  async getCreatedDate(uid: string) {
+    const user = await this.userModel.findOne({ uid }).select({
+      created_at: 1,
+    });
+
+    return user;
+  }
+
   async findByEmail(email: string) {
     const user = await this.userModel
       .findOne({ email })

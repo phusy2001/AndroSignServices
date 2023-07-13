@@ -9,7 +9,7 @@ export class AppService {
     this.httpsAgent = new https.Agent({
       rejectUnauthorized: false,
     });
-    this.certHost = 'https://localhost:7207/api/Cer';
+    this.certHost = 'http://103.95.197.217:3002/api/Cer';
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFMethod = '/SignPDF';
     this.convertMethod = '/ToPdf';

@@ -37,32 +37,44 @@ export class AppController {
     @UploadedFile() pdfFile: Express.Multer.File,
     @Body() body: File
   ) {
-    const object = await this.fileService.create(body);
-    const result = await this.s3Service.upload(
-      pdfFile.buffer,
-      object._id + '.pdf'
+    const isExisted = await this.fileService.findNameByUser(
+      body.user,
+      body.name
     );
-    if (result) {
-      this.fileService.updatePathById(object._id, result.Location);
-      this.fileService.updateFileHistory(object._id, body.user, 'create');
-      const data = await this.appService.getUserFcmtoken(body.stepUser);
-      if (data.data.fcm_tokens)
-        this.appService.sendUserNotification(
-          data.data.fcm_tokens,
-          'Thông báo',
-          `Tài liệu  ${body.name} đang chờ bạn ký`
-        );
+    if (isExisted) {
       return res.status(HttpStatus.OK).json({
         data: {},
-        status: 'true',
-        message: 'Tài liệu được tải lên thành công',
+        status: 'false',
+        message: 'Tên tài liệu đã tồn tại',
+      });
+    } else {
+      const object = await this.fileService.create(body);
+      const result = await this.s3Service.upload(
+        pdfFile.buffer,
+        object._id + '.pdf'
+      );
+      if (result) {
+        this.fileService.updatePathById(object._id, result.Location);
+        this.fileService.updateFileHistory(object._id, body.user, 'create');
+        const data = await this.appService.getUserFcmtoken(body.stepUser);
+        if (data.data.fcm_tokens)
+          this.appService.sendUserNotification(
+            data.data.fcm_tokens,
+            'Thông báo',
+            `Tài liệu  ${body.name} đang chờ bạn ký`
+          );
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Tài liệu được tải lên thành công',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Tài liệu tải lên thất bại',
       });
     }
-    return res.status(HttpStatus.OK).json({
-      data: {},
-      status: 'false',
-      message: 'Tài liệu tải lên thất bại',
-    });
   }
 
   @Post('/deleteFile')
@@ -171,7 +183,7 @@ export class AppController {
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Xác nhận ký tài liệu thất bại',
+      message: result.data.error,
     });
   }
 
@@ -273,19 +285,31 @@ export class AppController {
 
   @Post('/createFolder')
   async createFolder(@Res() res, @Body() body) {
-    const result = await this.folderService.create(body);
-    if (result) {
+    const isExisted = await this.folderService.findNameByUser(
+      body.user,
+      body.name
+    );
+    if (isExisted) {
       return res.status(HttpStatus.OK).json({
         data: {},
-        status: 'true',
-        message: 'Thư mục mới đã được tạo thành công',
+        status: 'false',
+        message: 'Tên thư mục đã tồn tại',
+      });
+    } else {
+      const result = await this.folderService.create(body);
+      if (result) {
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Thư mục mới đã được tạo thành công',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Tạo thư mục mới thất bại',
       });
     }
-    return res.status(HttpStatus.OK).json({
-      data: {},
-      status: 'false',
-      message: 'Tạo thư mục mới thất bại',
-    });
   }
 
   @Get('/getFolders')
@@ -557,19 +581,57 @@ export class AppController {
   }
 
   @Post('/renameFile')
-  async renameFile(@Res() res, @Body() body) {
-    const result = await this.fileService.renameFile(body.id, body.name);
-    if (result) {
+  async renameFile(@Res() res, @UserId() userId, @Body() body) {
+    const isExisted = await this.fileService.findNameByUser(userId, body.name);
+    if (isExisted) {
       return res.status(HttpStatus.OK).json({
         data: {},
-        status: 'true',
-        message: 'Đổi tên tài liệu thành công',
+        status: 'false',
+        message: 'Tên tài liệu đã tồn tại',
+      });
+    } else {
+      const result = await this.fileService.renameFile(body.id, body.name);
+      if (result) {
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Đổi tên tài liệu thành công',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Đổi tên tài liệu thất bại',
       });
     }
-    return res.status(HttpStatus.OK).json({
-      data: {},
-      status: 'false',
-      message: 'Đổi tên tài liệu thất bại',
-    });
+  }
+
+  @Post('/renameFolder')
+  async renameFolder(@Res() res, @UserId() userId, @Body() body) {
+    const isExisted = await this.folderService.findNameByUser(
+      userId,
+      body.name
+    );
+    if (isExisted) {
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Tên thư mục đã tồn tại',
+      });
+    } else {
+      const result = await this.folderService.renameFolder(body.id, body.name);
+      if (result) {
+        return res.status(HttpStatus.OK).json({
+          data: {},
+          status: 'true',
+          message: 'Đổi tên thư mục thành công',
+        });
+      }
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Đổi tên thư mục thất bại',
+      });
+    }
   }
 }

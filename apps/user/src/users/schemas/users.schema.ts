@@ -32,9 +32,6 @@ export class User {
   fcm_tokens: string[];
 
   @Prop()
-  path_ca: string;
-
-  @Prop()
   password_ca: string;
 
   @Prop({ default: now() })

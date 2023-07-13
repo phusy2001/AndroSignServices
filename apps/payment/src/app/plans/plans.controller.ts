@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { PlansService } from './plans.service';
 import { CreatePlanDto } from './dto/create-plan.dto';
 
@@ -9,6 +9,11 @@ export class PlansController {
   @Get()
   async getPlans() {
     return this.plansService.getPlans();
+  }
+
+  @Get(':id')
+  async getPlanById(@Param('id') plan_id: string) {
+    return this.plansService.getPlanById(plan_id);
   }
 
   @Post()

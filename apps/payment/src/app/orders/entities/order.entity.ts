@@ -9,13 +9,8 @@ enum Status {
 
 @Schema()
 export class Order {
-  @Prop({
-    type: String,
-    default: function genUUID() {
-      return uuidv4();
-    },
-  })
-  order_id: number;
+  @Prop()
+  order_id: string;
 
   @Prop({ required: true })
   user_id: string;

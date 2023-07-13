@@ -79,6 +79,25 @@ export class UsersController {
     };
   }
 
+  @Get(':id/get-created-date')
+  async getCreatedDate(@Param('id') uid: string) {
+    const user = await this.usersService.getCreatedDate(uid);
+
+    if (user) {
+      return {
+        data: user,
+        status: 'true',
+        message: `Lấy ngày tạo với id ${uid} thành công`,
+      };
+    }
+
+    return {
+      data: {},
+      status: 'false',
+      message: `Lấy ngày tạo với id ${uid} thất bại`,
+    };
+  }
+
   @Put(':id')
   @UseGuards(AuthGuard)
   async update(@Param('id') uid: string, @Body() dto: UpdateUserDto) {
@@ -110,7 +129,6 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @UseGuards(AuthGuard)
   async delete(@Param('id') uid: string) {
     const user = await this.usersService.find(uid);
 
@@ -224,13 +242,21 @@ export class UsersController {
         expireAfter
       );
 
+      if (user) {
+        return {
+          data: user,
+          status: 'true',
+          message: 'Create User Ca successfully',
+        };
+      }
+
       return {
-        data: user,
-        status: 'true',
-        message: 'Create User Ca successfully',
+        data: {},
+        status: 'false',
+        message: 'Create User Ca failed',
       };
     } catch (error) {
-      console.log(error);
+      console.log('error in user control', error);
     }
   }
 
@@ -246,8 +272,8 @@ export class UsersController {
       );
       return {
         data: {},
-        status: result.status ? 'true' : 'false',
-        message: result.status
+        status: result.data.status ? 'true' : 'false',
+        message: result.data.status
           ? 'Thay đổi mật khẩu bảo vệ thành công'
           : 'Thay đổi mật khẩu bảo vệ thất bại',
       };

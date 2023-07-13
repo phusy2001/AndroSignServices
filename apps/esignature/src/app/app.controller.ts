@@ -25,7 +25,7 @@ export class AppController {
       fileName,
       expireAfter = 0,
       isUpdate = false,
-      newPass = '',
+      newPass = 'null',
     } = data;
     const result = await this.appService.createSelfCA(
       issued,
@@ -85,7 +85,7 @@ export class AppController {
         message: 'Signed PDF Successfully',
       };
     return {
-      data: {},
+      data: result.data,
       status: 'false',
       message: 'Signed PDF Failed',
     };

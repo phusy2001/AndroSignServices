@@ -12,6 +12,10 @@ export class PlansService {
     return await this.planModel.find();
   }
 
+  async getPlanById(plan_id: string) {
+    return await this.planModel.findOne({ plan_id });
+  }
+
   async createPlan(createPlanDto: CreatePlanDto) {
     const createdPlan = new this.planModel(createPlanDto);
     return createdPlan.save();

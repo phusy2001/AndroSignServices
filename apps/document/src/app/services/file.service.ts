@@ -55,6 +55,7 @@ export class FileService {
         $expr: {
           $eq: ['$stepIndex', '$stepTotal'],
         },
+        stepTotal: { $gt: 0 },
       });
     else if (status === 'me') query.find({ stepUser: userId });
     else if (status === 'others')
@@ -160,6 +161,7 @@ export class FileService {
         $expr: {
           $eq: ['$stepIndex', '$stepTotal'],
         },
+        stepTotal: { $gt: 0 },
       });
     else if (status === 'me') query.find({ stepUser: userId });
     else if (status === 'others')
@@ -262,6 +264,7 @@ export class FileService {
         $expr: {
           $eq: ['$stepIndex', '$stepTotal'],
         },
+        stepTotal: { $gt: 0 },
       });
     else if (status === 'me') query.find({ stepUser: userId });
     else if (status === 'others')
@@ -340,5 +343,12 @@ export class FileService {
 
   async updateXfdfById(id: string, xfdf: string) {
     return await this.fileModel.findByIdAndUpdate(id, { xfdf: xfdf });
+  }
+
+  async findNameByUser(userId: string, name: string) {
+    return await this.fileModel.findOne(
+      { user: userId, name: name },
+      { name: 1 }
+    );
   }
 }
