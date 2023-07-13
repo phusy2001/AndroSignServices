@@ -115,8 +115,6 @@ export class OrdersService {
       data: qs.stringify(postData),
     };
 
-    console.log('get app_trans_id', app_trans_id);
-
     return await axios(postConfig);
   }
 
