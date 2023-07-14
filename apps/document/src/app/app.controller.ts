@@ -51,7 +51,7 @@ export class AppController {
       const object = await this.fileService.create(body);
       const result = await this.s3Service.upload(
         pdfFile.buffer,
-        object._id + '.pdf'
+        body.user + '/' + object._id + '.pdf'
       );
       if (result) {
         this.fileService.updatePathById(object._id, result.Location);
@@ -139,7 +139,7 @@ export class AppController {
   async editFile(@Res() res, @UserId() userId, @Body() body) {
     const password = await this.appService.encryptPassword(body.passCa);
     const result = await this.appService.signDocument({
-      PdfPath: body.id + '.pdf',
+      PdfPath: userId + '/' + body.id + '.pdf',
       PfxPath: userId + '.pfx',
       PassWord: password.data,
       Xfdf: body.xfdf,
@@ -538,10 +538,10 @@ export class AppController {
   }
 
   @Post('/deletePermanently')
-  async deletePermanently(@Res() res, @Body() body) {
+  async deletePermanently(@Res() res, @UserId() userId, @Body() body) {
     const result = await this.fileService.deletePermanently(body.id);
     if (result) {
-      this.s3Service.delete(body.id + '.pdf');
+      this.s3Service.delete(userId + '/' + body.id + '.pdf');
       return res.status(HttpStatus.OK).json({
         data: {},
         status: 'true',
@@ -678,6 +678,23 @@ export class AppController {
       },
       status: 'true',
       message: 'Lấy dung lượng bộ nhớ thành công',
+    });
+  }
+
+  @Get('/test')
+  async getUsageByUserId(@Res() res, @Query('id') userId) {
+    const result = await this.s3Service.getFolderCapacity(
+      'androsign',
+      'documents/' + userId
+    );
+    // Lấy dung lượng toàn bộ File trên S3 mà User này đã dùng
+
+    const result2 = await this.fileService.getTotalCount(true, userId);
+    // Lấy tổng số lượng Doc của User => true là số lượng doc đã ký hoàn thành, false là toàn bộ
+
+    return res.status(HttpStatus.OK).json({
+      usage: result,
+      count: result2,
     });
   }
 }

@@ -239,7 +239,7 @@ export class UsersController {
         email,
         uid,
         passwordCa,
-        expireAfter
+        30
       );
 
       if (user) {
