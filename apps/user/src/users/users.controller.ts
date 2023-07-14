@@ -302,6 +302,25 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/admin/getOverviewUsers')
+  async getOverviewUsers() {
+    try {
+      const result = await this.usersService.getTotalCount();
+      const result1 = await this.usersService.getRecentUsersCount(7);
+      return {
+        data: {
+          total: result,
+          totalRecent: result1,
+        },
+        status: 'true',
+        message: 'Lấy số lượng người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);

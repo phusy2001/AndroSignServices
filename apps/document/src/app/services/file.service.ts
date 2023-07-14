@@ -351,4 +351,42 @@ export class FileService {
       { name: 1 }
     );
   }
+
+  async getTotalCount(completed: boolean, userId?: string) {
+    if (userId) {
+      if (completed)
+        return await this.fileModel.countDocuments({
+          $expr: {
+            $eq: ['$stepIndex', '$stepTotal'],
+          },
+          stepTotal: { $gt: 0 },
+          user: userId,
+        });
+      else return await this.fileModel.countDocuments({ user: userId });
+    }
+    if (completed)
+      return await this.fileModel.countDocuments({
+        $expr: {
+          $eq: ['$stepIndex', '$stepTotal'],
+        },
+        stepTotal: { $gt: 0 },
+      });
+    else return await this.fileModel.countDocuments({});
+  }
+
+  async getRecentCount(days: number, completed: boolean) {
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    if (completed)
+      return await this.fileModel.countDocuments({
+        $expr: {
+          $eq: ['$stepIndex', '$stepTotal'],
+        },
+        stepTotal: { $gt: 0 },
+        created_at: { $gte: startDate },
+      });
+    else
+      return await this.fileModel.countDocuments({
+        created_at: { $gte: startDate },
+      });
+  }
 }

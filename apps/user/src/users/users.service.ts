@@ -198,4 +198,15 @@ export class UsersService {
       { display_name: 1, phone_number: 1, address: 1 }
     );
   }
+
+  async getTotalCount() {
+    return await this.userModel.countDocuments({});
+  }
+
+  async getRecentUsersCount(days: number) {
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    return await this.userModel.countDocuments({
+      created_at: { $gte: startDate },
+    });
+  }
 }

@@ -634,4 +634,50 @@ export class AppController {
       });
     }
   }
+
+  @Get('/admin/getOverviewDocuments')
+  async getOverviewDocuments(@Res() res) {
+    const result = await this.fileService.getTotalCount(false);
+    const result1 = await this.fileService.getRecentCount(7, false);
+
+    return res.status(HttpStatus.OK).json({
+      data: {
+        total: result,
+        totalRecent: result1,
+      },
+      status: 'true',
+      message: 'Lấy số lượng tài liệu thành công',
+    });
+  }
+
+  @Get('/admin/getOverviewCDocuments')
+  async getOverviewCDocuments(@Res() res) {
+    const result = await this.fileService.getTotalCount(true);
+    const result1 = await this.fileService.getRecentCount(1, true);
+
+    return res.status(HttpStatus.OK).json({
+      data: {
+        total: result,
+        totalRecent: result1,
+      },
+      status: 'true',
+      message: 'Lấy số lượng tài liệu hoàn thành thành công',
+    });
+  }
+
+  @Get('/admin/getOverviewStorage')
+  async getOverviewStorage(@Res() res) {
+    const result = await this.s3Service.getFolderCapacity(
+      'androsign',
+      'documents'
+    );
+    const usage = result / 1048576;
+    return res.status(HttpStatus.OK).json({
+      data: {
+        documentUsage: usage.toFixed(2),
+      },
+      status: 'true',
+      message: 'Lấy dung lượng bộ nhớ thành công',
+    });
+  }
 }
