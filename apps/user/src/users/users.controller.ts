@@ -321,6 +321,28 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/admin/getUserStatistics')
+  async getUserStatistics() {
+    try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const data = await this.usersService.getUsersCountInYear(currentYear);
+      const arr = [...Array(12)].fill(0);
+      data.map((item) => (arr[item._id.month - 1] = item.count));
+      return {
+        data: {
+          year: currentYear,
+          data: arr,
+        },
+        status: 'true',
+        message: 'Lấy thống kê người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);

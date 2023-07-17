@@ -377,6 +377,15 @@ export class FileService {
     else return await this.fileModel.countDocuments({});
   }
 
+  async getTotalWaitingDocs() {
+    return await this.fileModel.countDocuments({
+      $expr: {
+        $ne: ['$stepIndex', '$stepTotal'],
+      },
+      stepTotal: { $gt: 0 },
+    });
+  }
+
   async getRecentCount(days: number, completed: boolean) {
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
     if (completed)

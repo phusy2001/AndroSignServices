@@ -209,4 +209,27 @@ export class UsersService {
       created_at: { $gte: startDate },
     });
   }
+
+  async getUsersCountInYear(year: number) {
+    return await this.userModel.aggregate([
+      {
+        $match: {
+          created_at: {
+            $gte: new Date(year, 0, 1),
+            $lte: new Date(year, 11, 31),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$created_at' },
+            year: { $year: '$created_at' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.month': 1 } },
+    ]);
+  }
 }

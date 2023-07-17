@@ -681,6 +681,20 @@ export class AppController {
     });
   }
 
+  @Get('/admin/getDocumentStatistics')
+  async getDocumentStatistics(@Res() res) {
+    const result = await this.fileService.getTotalCount(true);
+    const result1 = await this.fileService.getTotalWaitingDocs();
+    return res.status(HttpStatus.OK).json({
+      data: {
+        completed: result,
+        waiting: result1,
+      },
+      status: 'true',
+      message: 'Lấy thống kê người dùng thành công',
+    });
+  }
+
   @Get('/test')
   async getUsageByUserId(@Res() res, @Query('id') userId) {
     const result = await this.s3Service.getFolderCapacity(
