@@ -73,10 +73,28 @@ export class AppController {
     });
   }
 
-  @MessagePattern('sign_document')
-  async signDocument(data: any) {
+  @MessagePattern('sign_document_img')
+  async signDocumentWithImg(data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    const result = await this.appService.signPDF(data);
+    const result = await this.appService.signPDF(data, 'img');
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+    if (result.data.status)
+      return {
+        data: result.data.data,
+        status: 'true',
+        message: 'Signed PDF Successfully',
+      };
+    return {
+      data: result.data,
+      status: 'false',
+      message: 'Signed PDF Failed',
+    };
+  }
+
+  @MessagePattern('sign_document_ca')
+  async signDocumentWithCA(data: any) {
+    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+    const result = await this.appService.signPDF(data, 'ca');
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
     if (result.data.status)
       return {

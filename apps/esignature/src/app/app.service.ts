@@ -11,12 +11,14 @@ export class AppService {
     });
     this.certHost = 'http://103.95.197.217:3002/api/Cer';
     this.createCAMethod = '/CreateSelfCA';
-    this.signPDFMethod = '/SignPDF';
+    this.signPDFImgMethod = '/SignPDFWithImg';
+    this.signPDFCAMethod = '/SignPDFWithCA';
     this.convertMethod = '/ToPdf';
   }
   private certHost: string;
   private createCAMethod: string;
-  private signPDFMethod: string;
+  private signPDFImgMethod: string;
+  private signPDFCAMethod: string;
   private convertMethod: string;
   private httpsAgent: https.Agent;
 
@@ -78,10 +80,16 @@ export class AppService {
     );
   }
 
-  async signPDF(data: any): Promise<any> {
+  async signPDF(data: any, type: string): Promise<any> {
+    let method = '';
+    if (type === 'ca') {
+      method = this.signPDFCAMethod;
+    } else if (type == 'img') {
+      method = this.signPDFImgMethod;
+    }
     return await lastValueFrom(
       this.httpService.request({
-        url: this.signPDFMethod,
+        url: method,
         method: 'POST',
         baseURL: this.certHost,
         data: JSON.stringify(data),
