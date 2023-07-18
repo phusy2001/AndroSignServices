@@ -42,7 +42,7 @@ export class AppService {
 
   async signDocument(data: any) {
     return await lastValueFrom(
-      this.esignatureService.send('sign_document', data)
+      this.esignatureService.send('sign_document_img', data)
     );
   }
 
