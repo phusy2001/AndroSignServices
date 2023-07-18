@@ -24,4 +24,25 @@ export class OrdersController {
       return error;
     }
   }
+
+  @Get('/admin/getIncomeStatistics')
+  async getIncomeStatistics() {
+    try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const data = await this.ordersService.getIncomeInYear(currentYear);
+      const arr = [...Array(12)].fill(0);
+      data.map((item) => (arr[item._id.month - 1] = item.total));
+      return {
+        data: {
+          year: currentYear,
+          data: arr,
+        },
+        status: 'true',
+        message: 'Lấy thống kê doanh thu thành công',
+      };
+    } catch (error) {
+      return error;
+    }
+  }
 }

@@ -115,8 +115,6 @@ export class OrdersService {
       data: qs.stringify(postData),
     };
 
-    console.log('get app_trans_id', app_trans_id);
-
     return await axios(postConfig);
   }
 
@@ -132,5 +130,27 @@ export class OrdersService {
 
   async getOrder(order_id: string) {
     return await this.orderModel.findOne({ order_id });
+  }
+
+  async getIncomeInYear(year: number) {
+    return await this.orderModel.aggregate([
+      {
+        $match: {
+          created_at: {
+            $gte: new Date(year, 0, 1),
+            $lte: new Date(year, 11, 31),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$created_at' },
+            year: { $year: '$created_at' },
+          },
+          total: { $sum: '$total_price' },
+        },
+      },
+    ]);
   }
 }

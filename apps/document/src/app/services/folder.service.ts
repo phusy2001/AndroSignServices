@@ -96,6 +96,9 @@ export class FolderService {
   }
 
   async renameFolder(id: string, name: string) {
-    return await this.folderModel.findByIdAndUpdate(id, { name: name });
+    return await this.folderModel.findByIdAndUpdate(id, {
+      name: name,
+      updated_at: new Date(),
+    });
   }
 }

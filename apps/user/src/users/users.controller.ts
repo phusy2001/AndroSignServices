@@ -239,7 +239,7 @@ export class UsersController {
         email,
         uid,
         passwordCa,
-        expireAfter
+        30
       );
 
       if (user) {
@@ -276,6 +276,67 @@ export class UsersController {
         message: result.data.status
           ? 'Thay đổi mật khẩu bảo vệ thành công'
           : 'Thay đổi mật khẩu bảo vệ thất bại',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @Get('/:email/getAdminInfo')
+  async getAdminInfo(@Param('email') email) {
+    try {
+      const result = await this.usersService.getAdminInfo(email);
+      if (result)
+        return {
+          data: result,
+          status: 'true',
+          message: 'Lấy thông tin Admin thành công',
+        };
+      return {
+        data: {},
+        status: 'false',
+        message: 'Lấy thông tin Admin thất bại',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/admin/getOverviewUsers')
+  async getOverviewUsers() {
+    try {
+      const result = await this.usersService.getTotalCount();
+      const result1 = await this.usersService.getRecentUsersCount(7);
+      return {
+        data: {
+          total: result,
+          totalRecent: result1,
+        },
+        status: 'true',
+        message: 'Lấy số lượng người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/admin/getUserStatistics')
+  async getUserStatistics() {
+    try {
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear();
+      const data = await this.usersService.getUsersCountInYear(currentYear);
+      const arr = [...Array(12)].fill(0);
+      data.map((item) => (arr[item._id.month - 1] = item.count));
+      return {
+        data: {
+          year: currentYear,
+          data: arr,
+        },
+        status: 'true',
+        message: 'Lấy thống kê người dùng thành công',
       };
     } catch (error) {
       console.log(error);

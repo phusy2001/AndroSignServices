@@ -23,6 +23,9 @@ export class Plan {
   @Prop()
   plan_price: number;
 
+  @Prop()
+  duration: number;
+
   @Prop({
     default: () => {
       return new Date();

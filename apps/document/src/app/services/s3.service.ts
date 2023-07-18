@@ -32,4 +32,24 @@ export class S3Service {
     const result = await this.s3.deleteObject(params).promise();
     return result;
   }
+
+  async getFolderCapacity(
+    bucketName: string,
+    folderPath: string
+  ): Promise<number> {
+    const params = {
+      Bucket: bucketName,
+      Prefix: folderPath,
+    };
+    try {
+      const data = await this.s3.listObjectsV2(params).promise();
+      const files = data.Contents;
+      const sizes = files.map((file) => file.Size);
+      const folderCapacity = sizes.reduce((acc, curr) => acc + curr, 0);
+      return folderCapacity;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
 }

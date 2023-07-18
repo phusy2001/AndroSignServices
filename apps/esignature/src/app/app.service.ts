@@ -9,7 +9,7 @@ export class AppService {
     this.httpsAgent = new https.Agent({
       rejectUnauthorized: false,
     });
-    this.certHost = 'http://103.95.197.217:3002/api/Cer';
+    this.certHost = process.env.ESIGNATURE_SERVICE_API;
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFImgMethod = '/SignPDFWithImg';
     this.signPDFCAMethod = '/SignPDFWithCA';

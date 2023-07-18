@@ -191,4 +191,45 @@ export class UsersService {
       console.log(error);
     }
   }
+
+  async getAdminInfo(email: string) {
+    return await this.userModel.findOne(
+      { email: email, role: 'admin' },
+      { display_name: 1, phone_number: 1, address: 1 }
+    );
+  }
+
+  async getTotalCount() {
+    return await this.userModel.countDocuments({});
+  }
+
+  async getRecentUsersCount(days: number) {
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    return await this.userModel.countDocuments({
+      created_at: { $gte: startDate },
+    });
+  }
+
+  async getUsersCountInYear(year: number) {
+    return await this.userModel.aggregate([
+      {
+        $match: {
+          created_at: {
+            $gte: new Date(year, 0, 1),
+            $lte: new Date(year, 11, 31),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            month: { $month: '$created_at' },
+            year: { $year: '$created_at' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.month': 1 } },
+    ]);
+  }
 }

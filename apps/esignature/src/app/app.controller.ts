@@ -23,7 +23,7 @@ export class AppController {
       issued,
       password,
       fileName,
-      expireAfter = 0,
+      expireAfter = 30,
       isUpdate = false,
       newPass = 'null',
     } = data;
