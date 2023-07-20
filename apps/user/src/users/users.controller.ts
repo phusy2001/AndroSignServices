@@ -1,4 +1,4 @@
-import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
+import { MessagePattern } from '@nestjs/microservices';
 import {
   Controller,
   Get,
@@ -8,6 +8,7 @@ import {
   Delete,
   Param,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
@@ -337,6 +338,42 @@ export class UsersController {
         },
         status: 'true',
         message: 'Lấy thống kê người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/admin/customers')
+  async getCustomers(
+    @Query('page') page: number,
+    @Query('limit') limit: number
+  ) {
+    try {
+      page = page ? +page : 1;
+      limit = limit ? +limit : 10;
+
+      const data = await this.usersService.getCustomers(page, limit);
+      return {
+        data: data,
+        status: 'true',
+        message: 'Lấy danh sách người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/admin/customers/count')
+  async getCustomersQuantity() {
+    try {
+      const data = await this.usersService.getCustomersQty();
+      return {
+        data: data,
+        status: 'true',
+        message: 'Lấy số lượng người dùng thành công',
       };
     } catch (error) {
       console.log(error);

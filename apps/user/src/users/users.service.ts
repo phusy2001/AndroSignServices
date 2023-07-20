@@ -233,6 +233,17 @@ export class UsersService {
     ]);
   }
 
+  async getCustomers(page, limit) {
+    const skip = (page - 1) * limit;
+    const users = await this.userModel.find().skip(skip).limit(limit).exec();
+    return users;
+  }
+
+  async getCustomersQty() {
+    const users = await this.userModel.find();
+    return users.length;
+  }
+
   async getUidsByKeyword(keyword: string) {
     const regex = new RegExp(`.*${keyword}.*`, 'i');
     return await this.userModel
