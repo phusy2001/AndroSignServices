@@ -232,4 +232,11 @@ export class UsersService {
       { $sort: { '_id.month': 1 } },
     ]);
   }
+
+  async getUidsByKeyword(keyword: string) {
+    const regex = new RegExp(`.*${keyword}.*`, 'i');
+    return await this.userModel
+      .find({ email: { $regex: regex } })
+      .select({ uid: 1, _id: 0 });
+  }
 }

@@ -674,7 +674,7 @@ export class AppController {
     const usage = result / 1048576;
     return res.status(HttpStatus.OK).json({
       data: {
-        documentUsage: usage.toFixed(2),
+        documentUsage: usage.toFixed(2) + ' MB',
       },
       status: 'true',
       message: 'Lấy dung lượng bộ nhớ thành công',

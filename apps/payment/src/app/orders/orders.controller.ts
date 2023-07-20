@@ -1,9 +1,13 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { PlansService } from '../plans/plans.service';
 @Controller('orders')
 export class OrdersController {
-  constructor(private readonly ordersService: OrdersService) {}
+  constructor(
+    private readonly ordersService: OrdersService,
+    private readonly plansService: PlansService
+  ) {}
 
   @Post()
   async createOrder(@Body() orderDto: CreateOrderDto) {
@@ -40,6 +44,41 @@ export class OrdersController {
         },
         status: 'true',
         message: 'Lấy thống kê doanh thu thành công',
+      };
+    } catch (error) {
+      return error;
+    }
+  }
+
+  @Get('/admin/getOrders')
+  async getOrdersAdmin(
+    @Query('offset') offset,
+    @Query('sort') sort,
+    @Query('status') status,
+    @Query('keyword') keyword,
+    @Query('order') order
+  ) {
+    try {
+      const uids = await this.ordersService.getUidsByKeyword(keyword);
+      const data: any = await this.ordersService.getOrdersAdmin(
+        offset,
+        sort,
+        order,
+        status,
+        uids.data,
+        keyword
+      );
+      for (let item of data.data) {
+        const user = await this.ordersService.getUsersByIdArr([item.user_id]);
+        item.user_email = user.data[0].email;
+        item.user_name = user.data[0].display_name;
+        const plan = await this.plansService.getPlanById(item.plan_id);
+        item.plan_name = plan.plan_description;
+      }
+      return {
+        data: data,
+        status: 'true',
+        message: 'Lấy danh sách giao dịch thành công',
       };
     } catch (error) {
       return error;

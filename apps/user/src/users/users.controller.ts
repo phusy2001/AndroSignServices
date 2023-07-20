@@ -393,4 +393,23 @@ export class UsersController {
       message: 'Get Fcmtoken Failed',
     };
   }
+
+  @MessagePattern('get_uids_by_keyword')
+  async getUidsByKeyword(keyword: string) {
+    const result = await this.usersService.getUidsByKeyword(keyword);
+    const data = Object.values(result).map((value) => {
+      return value.uid;
+    });
+    if (data)
+      return {
+        data: data,
+        status: 'true',
+        message: 'Get Uids Successfully',
+      };
+    return {
+      data: {},
+      status: 'false',
+      message: 'Get Uids Failed',
+    };
+  }
 }

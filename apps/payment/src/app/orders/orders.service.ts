@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import axios from 'axios';
@@ -8,6 +8,8 @@ import qs from 'qs';
 import { Order } from './entities/order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PlansService } from '../plans/plans.service';
+import { ClientProxy } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class OrdersService {
@@ -20,7 +22,8 @@ export class OrdersService {
 
   constructor(
     @InjectModel(Order.name) private orderModel: Model<Order>,
-    private planService: PlansService
+    private planService: PlansService,
+    @Inject('USER_SERVICE') private userService: ClientProxy
   ) {}
 
   async create(orderDto: CreateOrderDto) {
@@ -87,8 +90,8 @@ export class OrdersService {
     orderData.total_tax = 0;
     orderData.total_price = plan.plan_price;
 
-    // const orderDataTemp = await this.orderModel.create(orderData);
-    // orderDataTemp.save();
+    const orderDataTemp = await this.orderModel.create(orderData);
+    orderDataTemp.save();
 
     console.log(res);
 
@@ -152,5 +155,42 @@ export class OrdersService {
         },
       },
     ]);
+  }
+
+  async getOrdersAdmin(
+    offset: number,
+    sort: string,
+    order: string,
+    status: string,
+    uidList: Array<string>,
+    keyword: string
+  ) {
+    const numLimit = 10;
+    const query = this.orderModel.find();
+    if (keyword !== '') query.find({ user_id: { $in: uidList } });
+    if (status === 'success') query.find({ status: 1 });
+    else if (status === 'fail') query.find({ status: 2 });
+    else if (status === 'processing') query.find({ status: 3 });
+    const total = await this.orderModel.countDocuments(query);
+    if (sort === 'date')
+      query.sort({ order_date: `${order === 'asc' ? 'asc' : 'desc'}` });
+    else if (sort === 'price')
+      query.sort({ total_price: `${order === 'asc' ? 'asc' : 'desc'}` });
+    query.limit(numLimit);
+    query.skip(offset * numLimit);
+    const data = await query.exec();
+    return { data, total };
+  }
+
+  async getUidsByKeyword(keyword: string) {
+    return await lastValueFrom(
+      this.userService.send('get_uids_by_keyword', keyword)
+    );
+  }
+
+  async getUsersByIdArr(ids: string[]) {
+    return await lastValueFrom(
+      this.userService.send('get_users_from_list_uid', ids)
+    );
   }
 }

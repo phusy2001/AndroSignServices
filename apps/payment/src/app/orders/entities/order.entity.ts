@@ -47,6 +47,15 @@ export class Order {
     },
   })
   updated_at: Date;
+
+  @Prop()
+  user_name: string;
+
+  @Prop()
+  user_email: string;
+
+  @Prop()
+  plan_name: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);
