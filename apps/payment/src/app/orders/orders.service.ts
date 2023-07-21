@@ -89,7 +89,9 @@ export class OrdersService {
     orderData.status = 2;
     orderData.total_tax = 0;
     orderData.total_price = plan.plan_price;
-
+    orderData.expired_on = new Date(
+      new Date().setDate(new Date().getDate() + plan.duration)
+    );
     const orderDataTemp = await this.orderModel.create(orderData);
     orderDataTemp.save();
 

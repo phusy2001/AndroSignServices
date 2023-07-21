@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PlansService } from '../plans/plans.service';
@@ -24,6 +32,20 @@ export class OrdersController {
     try {
       const status = await this.ordersService.getStatus(app_trans_id);
       return JSON.stringify(status.data);
+    } catch (error) {
+      return error;
+    }
+  }
+
+  @Patch('/status/:id')
+  async updateStatus(@Param('id') app_trans_id: string) {
+    try {
+      const status = await this.ordersService.getStatus(app_trans_id);
+      const order = await this.ordersService.updateStatus(
+        app_trans_id,
+        status.data
+      );
+      return { data: order };
     } catch (error) {
       return error;
     }
@@ -68,7 +90,7 @@ export class OrdersController {
         uids.data,
         keyword
       );
-      for (let item of data.data) {
+      for (const item of data.data) {
         const user = await this.ordersService.getUsersByIdArr([item.user_id]);
         item.user_email = user.data[0].email;
         item.user_name = user.data[0].display_name;
