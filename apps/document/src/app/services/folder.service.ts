@@ -101,4 +101,10 @@ export class FolderService {
       updated_at: new Date(),
     });
   }
+
+  async getTotalFolders(userId: string) {
+    return await this.folderModel.countDocuments({
+      user: userId,
+    });
+  }
 }

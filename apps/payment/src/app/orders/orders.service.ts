@@ -23,7 +23,8 @@ export class OrdersService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<Order>,
     private planService: PlansService,
-    @Inject('USER_SERVICE') private userService: ClientProxy
+    @Inject('USER_SERVICE') private userService: ClientProxy,
+    @Inject('DOCUMENT_SERVICE') private docService: ClientProxy
   ) {}
 
   async create(orderDto: CreateOrderDto) {
@@ -194,5 +195,21 @@ export class OrdersService {
     return await lastValueFrom(
       this.userService.send('get_users_from_list_uid', ids)
     );
+  }
+
+  async getUserValidOrder(userId: string) {
+    const now = new Date();
+    return await this.orderModel.findOne(
+      {
+        user_id: userId,
+        status: 1,
+        expired_on: { $gt: now },
+      },
+      { plan_id: 1, expired_on: 1 }
+    );
+  }
+
+  async getUserUsage(id: string) {
+    return await lastValueFrom(this.docService.send('get_user_usage', id));
   }
 }
