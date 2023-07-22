@@ -53,6 +53,12 @@ export class FolderService {
     });
   }
 
+  async getAllFileIdsInFolder(folderId: string) {
+    return await this.folderModel.findById(folderId, {
+      files: 1,
+    });
+  }
+
   async checkFileInFolder(fileId: string, folderId: string) {
     return await this.folderModel.exists({ _id: folderId, files: fileId });
   }
