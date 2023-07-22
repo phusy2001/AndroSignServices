@@ -19,6 +19,7 @@ import { File } from './schemas/file.schema';
 import { S3Service } from './services/s3.service';
 import { FolderService } from './services/folder.service';
 import { UserId, AuthGuard } from '@androsign-microservices/shared';
+import { MessagePattern } from '@nestjs/microservices';
 
 @UseGuards(AuthGuard)
 @Controller()
@@ -710,5 +711,24 @@ export class AppController {
       usage: result,
       count: result2,
     });
+  }
+}
+
+@Controller()
+export class DocController {
+  constructor(
+    private readonly fileService: FileService,
+    private readonly folderService: FolderService
+  ) {}
+
+  @MessagePattern('get_user_usage')
+  async getUserDocCount(userId: string) {
+    const files = await this.fileService.getTotalCount(false, userId);
+    const folders = await this.folderService.getTotalFolders(userId);
+    return {
+      data: { files, folders },
+      status: 'true',
+      message: 'Lấy số lượng tài liệu thư mục thành công',
+    };
   }
 }

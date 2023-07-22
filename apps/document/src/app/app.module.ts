@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
+import { AppController, DocController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { File, FileSchema } from './schemas/file.schema';
@@ -21,7 +21,7 @@ import { SharedModule } from '@androsign-microservices/shared';
     MongooseModule.forFeature([{ name: Folder.name, schema: FolderSchema }]),
     SharedModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, DocController],
   providers: [AppService, FileService, S3Service, FolderService],
 })
 export class AppModule {}

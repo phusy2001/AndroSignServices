@@ -1,7 +1,19 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PlansService } from '../plans/plans.service';
+import { AuthGuard, UserId } from '@androsign-microservices/shared';
+
+@UseGuards(AuthGuard)
 @Controller('orders')
 export class OrdersController {
   constructor(
@@ -24,6 +36,20 @@ export class OrdersController {
     try {
       const status = await this.ordersService.getStatus(app_trans_id);
       return JSON.stringify(status.data);
+    } catch (error) {
+      return error;
+    }
+  }
+
+  @Patch('/status/:id')
+  async updateStatus(@Param('id') app_trans_id: string) {
+    try {
+      const status = await this.ordersService.getStatus(app_trans_id);
+      const order = await this.ordersService.updateStatus(
+        app_trans_id,
+        status.data
+      );
+      return { data: order };
     } catch (error) {
       return error;
     }
@@ -68,7 +94,7 @@ export class OrdersController {
         uids.data,
         keyword
       );
-      for (let item of data.data) {
+      for (const item of data.data) {
         const user = await this.ordersService.getUsersByIdArr([item.user_id]);
         item.user_email = user.data[0].email;
         item.user_name = user.data[0].display_name;
@@ -83,5 +109,35 @@ export class OrdersController {
     } catch (error) {
       return error;
     }
+  }
+
+  @Get('/checkUserPlan')
+  async checkUserPlan(@UserId() userId) {
+    const order = await this.ordersService.getUserValidOrder(userId);
+    if (order) {
+      const plan = await this.plansService.getPlanById(order.plan_id);
+      if (plan)
+        return {
+          data: {
+            name: plan.plan_name,
+            description: plan.plan_description,
+            type: plan.plan_type,
+            quotas: plan.quotas,
+            expired_on: order.expired_on,
+          },
+          status: 'true',
+          message: 'Lấy thông tin gói của người dùng thành công',
+        };
+    }
+    const user = await this.ordersService.getUserUsage(userId);
+    return {
+      data: {
+        type: 'free',
+        quotas: [],
+        usage: user.data,
+      },
+      status: 'false',
+      message: 'Người dùng không đăng ký gói dịch vụ',
+    };
   }
 }

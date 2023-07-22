@@ -34,6 +34,9 @@ export class Order {
   @Prop({ required: true })
   total_price: number;
 
+  @Prop()
+  expired_on: Date;
+
   @Prop({
     default: () => {
       return new Date();
