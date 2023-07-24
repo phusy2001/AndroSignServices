@@ -41,14 +41,34 @@ export class OrdersController {
     }
   }
 
-  @Patch('/status/:id')
+  @Post('/status/:id')
   async updateStatus(@Param('id') app_trans_id: string) {
     try {
       const status = await this.ordersService.getStatus(app_trans_id);
       const order = await this.ordersService.updateStatus(
         app_trans_id,
-        status.data
+        status.data.return_code
       );
+      if (status.data.return_code === 1) {
+        this.plansService.getPlanById(order.plan_id).then((plan: any) => {
+          this.ordersService
+            .getUsersByIdArr([order.user_id])
+            .then((user: any) => {
+              this.ordersService.sendEmailNotification(
+                user.data[0].email,
+                'AndroSign thanh toán dịch vụ thành công',
+                `Đơn hàng mã <b>${order.order_id}</b> với dịch vụ <b>${
+                  plan.plan_name
+                }(${
+                  plan.plan_description
+                })</b> đã được thanh toán thành công với số tiền <b>${formatPrice(
+                  order.total_price
+                )} VNĐ </b>`,
+                'Cảm ơn bạn đã thanh toán dịch vụ của chúng tôi'
+              );
+            });
+        });
+      }
       return { data: order };
     } catch (error) {
       return error;
@@ -139,5 +159,16 @@ export class OrdersController {
       status: 'false',
       message: 'Người dùng không đăng ký gói dịch vụ',
     };
+  }
+}
+
+function formatPrice(price: number) {
+  let [wholeNumber, decimal] = price.toString().split('.');
+  wholeNumber = wholeNumber.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  if (decimal) {
+    decimal = decimal.slice(0, 2).padEnd(2, '0');
+    return wholeNumber + '.' + decimal;
+  } else {
+    return wholeNumber;
   }
 }

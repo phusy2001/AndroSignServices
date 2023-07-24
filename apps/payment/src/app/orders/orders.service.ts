@@ -24,7 +24,8 @@ export class OrdersService {
     @InjectModel(Order.name) private orderModel: Model<Order>,
     private planService: PlansService,
     @Inject('USER_SERVICE') private userService: ClientProxy,
-    @Inject('DOCUMENT_SERVICE') private docService: ClientProxy
+    @Inject('DOCUMENT_SERVICE') private docService: ClientProxy,
+    @Inject('BACKGROUND_SERVICE') private backgroundService: ClientProxy
   ) {}
 
   async create(orderDto: CreateOrderDto) {
@@ -87,7 +88,7 @@ export class OrdersService {
     orderData.user_id = orderDto.user_id;
     orderData.order_id = order.app_trans_id;
     orderData.plan_id = orderDto.plan_id;
-    orderData.status = 2;
+    orderData.status = 3;
     orderData.total_tax = 0;
     orderData.total_price = plan.plan_price;
     orderData.expired_on = new Date(
@@ -135,7 +136,10 @@ export class OrdersService {
   }
 
   async getOrder(order_id: string) {
-    return await this.orderModel.findOne({ order_id });
+    return await this.orderModel.findOne(
+      { order_id },
+      { sort: { order_date: -1 } }
+    );
   }
 
   async getIncomeInYear(year: number) {
@@ -198,18 +202,33 @@ export class OrdersService {
   }
 
   async getUserValidOrder(userId: string) {
-    const now = new Date();
     return await this.orderModel.findOne(
       {
         user_id: userId,
         status: 1,
-        expired_on: { $gt: now },
       },
-      { plan_id: 1, expired_on: 1 }
+      { plan_id: 1, expired_on: 1 },
+      { sort: { expired_on: -1 } }
     );
   }
 
   async getUserUsage(id: string) {
     return await lastValueFrom(this.docService.send('get_user_usage', id));
+  }
+
+  async sendEmailNotification(
+    email: string,
+    subject: string,
+    content: string,
+    subjectContent: string
+  ) {
+    return await lastValueFrom(
+      this.backgroundService.send('send_email', {
+        email,
+        subject,
+        content,
+        subjectContent,
+      })
+    );
   }
 }
