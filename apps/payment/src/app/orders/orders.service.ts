@@ -170,9 +170,9 @@ export class OrdersService {
     order: string,
     status: string,
     uidList: Array<string>,
-    keyword: string
+    keyword: string,
+    limit: number
   ) {
-    const numLimit = 10;
     const query = this.orderModel.find();
     if (keyword !== '') query.find({ user_id: { $in: uidList } });
     if (status === 'success') query.find({ status: 1 });
@@ -183,8 +183,10 @@ export class OrdersService {
       query.sort({ order_date: `${order === 'asc' ? 'asc' : 'desc'}` });
     else if (sort === 'price')
       query.sort({ total_price: `${order === 'asc' ? 'asc' : 'desc'}` });
-    query.limit(numLimit);
-    query.skip(offset * numLimit);
+    if (limit > 0) {
+      query.limit(limit);
+      query.skip(offset * limit);
+    }
     const data = await query.exec();
     return { data, total };
   }

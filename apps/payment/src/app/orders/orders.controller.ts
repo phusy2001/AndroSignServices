@@ -102,7 +102,8 @@ export class OrdersController {
     @Query('sort') sort,
     @Query('status') status,
     @Query('keyword') keyword,
-    @Query('order') order
+    @Query('order') order,
+    @Query('limit') limit
   ) {
     try {
       const uids = await this.ordersService.getUidsByKeyword(keyword);
@@ -112,7 +113,8 @@ export class OrdersController {
         order,
         status,
         uids.data,
-        keyword
+        keyword,
+        limit
       );
       for (const item of data.data) {
         const user = await this.ordersService.getUsersByIdArr([item.user_id]);
