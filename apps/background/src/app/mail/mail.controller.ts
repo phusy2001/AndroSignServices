@@ -25,7 +25,6 @@ export class MailController {
           HttpStatus.NOT_FOUND
         );
       }
-
       await this.mailerService.sendMail({
         to: email,
         subject: subject,
@@ -56,13 +55,11 @@ export class MailController {
           HttpStatus.NOT_FOUND
         );
       }
-
       await this.mailerService.sendMail({
         to: email,
         subject: subject,
         html: template(subjectContent, content),
       });
-
       return { statusCode: 200, message: 'Email sent successfully.' };
     } catch (error) {
       throw new HttpException(

@@ -31,7 +31,6 @@ export class OrdersService {
   async create(orderDto: CreateOrderDto) {
     // APP INFO
     const plan = await this.planService.getPlanById(orderDto.plan_id);
-
     const items = [{}];
     const transID = Math.floor(Math.random() * 1000000);
     const item = [
@@ -46,7 +45,6 @@ export class OrdersService {
       promotioninfo: '',
       merchantinfo: JSON.stringify(item),
     };
-
     const order = {
       app_id: this.config.app_id,
       app_trans_id: `${moment().format('YYMMDD')}_${transID}`, // translation missing: vi.docs.shared.sample_code.comments.app_trans_id
@@ -59,9 +57,6 @@ export class OrdersService {
       bank_code: 'zalopayapp',
       mac: '',
     };
-
-    console.log('app_trans_id', order.app_trans_id);
-
     // appid|app_trans_id|appuser|amount|apptime|embeddata|item
     const data =
       this.config.app_id +
@@ -82,9 +77,7 @@ export class OrdersService {
     const res = await axios.post(this.config.endpoint, null, {
       params: order,
     });
-
     const orderData = new Order();
-
     orderData.user_id = orderDto.user_id;
     orderData.order_id = order.app_trans_id;
     orderData.plan_id = orderDto.plan_id;
@@ -96,9 +89,6 @@ export class OrdersService {
     );
     const orderDataTemp = await this.orderModel.create(orderData);
     orderDataTemp.save();
-
-    console.log(res);
-
     return { order_url: res.data.order_url, app_trans_id: orderData.order_id };
   }
 
@@ -108,11 +98,9 @@ export class OrdersService {
       app_trans_id: app_trans_id, // Input your app_trans_id,
       mac: '',
     };
-
     const data =
       postData.app_id + '|' + postData.app_trans_id + '|' + this.config.key1; // appid|app_trans_id|key1
     postData.mac = CryptoJS.HmacSHA256(data, this.config.key1).toString();
-
     const postConfig = {
       method: 'post',
       url: 'https://sb-openapi.zalopay.vn/v2/query',
@@ -121,7 +109,6 @@ export class OrdersService {
       },
       data: qs.stringify(postData),
     };
-
     return await axios(postConfig);
   }
 

@@ -22,10 +22,6 @@ export class AppService {
   private convertMethod: string;
   private httpsAgent: https.Agent;
 
-  getData(): { message: string } {
-    return { message: 'Welcome to esignature!' };
-  }
-
   encrypt(plainText: string): string {
     const key = CryptoJS.enc.Utf8.parse('4512631236589784');
     const iv = CryptoJS.enc.Utf8.parse('4512631236589784');
@@ -40,19 +36,6 @@ export class AppService {
       }
     );
     return encrypted.toString();
-  }
-
-  test(): Observable<any> {
-    const cipher = this.encrypt('nhbuu');
-
-    return this.httpService.request({
-      url: '',
-      method: 'POST',
-      baseURL: this.certHost,
-      params: {
-        cipher: cipher,
-      },
-    });
   }
 
   async createSelfCA(

@@ -757,23 +757,6 @@ export class AppController {
       message: 'Lấy thống kê người dùng thành công',
     });
   }
-
-  @Get('/test')
-  async getUsageByUserId(@Res() res, @Query('id') userId) {
-    const result = await this.s3Service.getFolderCapacity(
-      'androsign',
-      'documents/' + userId
-    );
-    // Lấy dung lượng toàn bộ File trên S3 mà User này đã dùng
-
-    const result2 = await this.fileService.getTotalCount(true, userId);
-    // Lấy tổng số lượng Doc của User => true là số lượng doc đã ký hoàn thành, false là toàn bộ
-
-    return res.status(HttpStatus.OK).json({
-      usage: result,
-      count: result2,
-    });
-  }
 }
 
 @Controller()

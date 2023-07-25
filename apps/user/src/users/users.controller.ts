@@ -22,17 +22,14 @@ export class UsersController {
   @Post()
   async create(@Body() dto: CreateUserDto) {
     const result = await this.find(dto.uid);
-
     if (result.status === 'false') {
       const user = await this.usersService.create(dto);
-
       return {
         data: user,
         status: 'true',
         message: 'Tạo người dùng thành công.',
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -44,7 +41,6 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async findAll() {
     const users = await this.usersService.findAll();
-
     if (users) {
       return {
         data: users,
@@ -52,7 +48,6 @@ export class UsersController {
         message: 'Lấy toàn bộ người dùng thành công.',
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -64,7 +59,6 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async find(@Param('id') uid: string) {
     const user = await this.usersService.find(uid);
-
     if (user) {
       return {
         data: user,
@@ -72,7 +66,6 @@ export class UsersController {
         message: `Lấy người dùng với id ${uid} thành công`,
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -83,7 +76,6 @@ export class UsersController {
   @Get(':id/get-created-date')
   async getCreatedDate(@Param('id') uid: string) {
     const user = await this.usersService.getCreatedDate(uid);
-
     if (user) {
       return {
         data: user,
@@ -91,7 +83,6 @@ export class UsersController {
         message: `Lấy ngày tạo với id ${uid} thành công`,
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -103,7 +94,6 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async update(@Param('id') uid: string, @Body() dto: UpdateUserDto) {
     const user = await this.usersService.find(uid);
-
     if (!user) {
       return {
         data: {},
@@ -111,9 +101,7 @@ export class UsersController {
         message: `Không tìm thấy người dùng với id ${uid} `,
       };
     }
-
     const result = await this.usersService.update(uid, dto);
-
     if (result) {
       return {
         data: result,
@@ -121,7 +109,6 @@ export class UsersController {
         message: `Cập nhật người dùng thành công`,
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -132,7 +119,6 @@ export class UsersController {
   @Delete(':id')
   async delete(@Param('id') uid: string) {
     const user = await this.usersService.find(uid);
-
     if (!user) {
       return {
         data: {},
@@ -140,9 +126,7 @@ export class UsersController {
         message: `Không tìm thấy người dùng với id ${uid}`,
       };
     }
-
     const result = await this.usersService.delete(uid);
-
     if (result.deletedCount > 0) {
       return {
         data: {},
@@ -150,7 +134,6 @@ export class UsersController {
         message: `Xoá người dùng với id ${uid} thành công`,
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -162,7 +145,6 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async changeStatus(@Param('id') uid: string) {
     const user = await this.usersService.find(uid);
-
     if (!user) {
       return {
         data: {},
@@ -170,9 +152,7 @@ export class UsersController {
         message: `Không tìm thấy người dùng với id ${uid}`,
       };
     }
-
     const updatedUser = await this.usersService.changeStatus(uid);
-
     if (updatedUser.disabled) {
       return {
         data: {},
@@ -191,7 +171,6 @@ export class UsersController {
   @Post('/remove-fcm-token')
   async removeFcmToken(@Body() dto) {
     const user = await this.usersService.removeFcmToken(dto.uid, dto.fcmToken);
-
     if (user) {
       return {
         data: user,
@@ -199,7 +178,6 @@ export class UsersController {
         message: 'Xoá fcm token thành công',
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -235,14 +213,12 @@ export class UsersController {
   async createUserCa(@Param('id') uid: string, @Body() dto) {
     try {
       const { email, passwordCa, expireAfter } = dto;
-
       const user = await this.usersService.createUserCa(
         email,
         uid,
         passwordCa,
         30
       );
-
       if (user) {
         return {
           data: user,
@@ -250,7 +226,6 @@ export class UsersController {
           message: 'Create User Ca successfully',
         };
       }
-
       return {
         data: {},
         status: 'false',
@@ -353,7 +328,6 @@ export class UsersController {
     try {
       page = page ? +page : 1;
       limit = limit ? +limit : 10;
-
       const data = await this.usersService.getCustomers(page, limit);
       return {
         data: data,
@@ -383,7 +357,6 @@ export class UsersController {
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);
-
     if (result.length > 0) {
       return {
         data: result,
@@ -391,7 +364,6 @@ export class UsersController {
         message: 'Lấy danh sách người dùng từ danh sách uid thành công',
       };
     }
-
     return {
       data: {},
       status: 'false',

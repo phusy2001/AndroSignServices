@@ -61,18 +61,6 @@ export class AppController {
     return this.appService.getData();
   }
 
-  @Post('/test')
-  test(@Res() res) {
-    process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    this.appService.test().subscribe((result) => {
-      process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
-      return res.status(HttpStatus.OK).json({
-        data: result.data,
-        message: 'Connected',
-      });
-    });
-  }
-
   @MessagePattern('sign_document_img')
   async signDocumentWithImg(data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
