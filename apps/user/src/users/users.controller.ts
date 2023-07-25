@@ -13,7 +13,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { AuthGuard } from 'libs/shared/src/lib/guards/auth.guard';
-import { UserId } from '@androsign-microservices/shared';
+import { UserId, firebase } from '@androsign-microservices/shared';
 
 @Controller('users')
 export class UsersController {
@@ -27,13 +27,13 @@ export class UsersController {
       return {
         data: user,
         status: 'true',
-        message: 'Tạo người dùng thành công.',
+        message: 'Tạo người dùng thành công',
       };
     }
     return {
       data: {},
       status: 'false',
-      message: 'Tạo người dùng thất bại.',
+      message: 'Tạo người dùng thất bại',
     };
   }
 
@@ -45,13 +45,13 @@ export class UsersController {
       return {
         data: users,
         status: 'true',
-        message: 'Lấy toàn bộ người dùng thành công.',
+        message: 'Lấy toàn bộ người dùng thành công',
       };
     }
     return {
       data: {},
       status: 'false',
-      message: 'Lấy toàn bộ người dùng thất bại.',
+      message: 'Lấy toàn bộ người dùng thất bại',
     };
   }
 
@@ -118,27 +118,23 @@ export class UsersController {
 
   @Delete(':id')
   async delete(@Param('id') uid: string) {
-    const user = await this.usersService.find(uid);
-    if (!user) {
+    try {
+      await firebase.auth().deleteUser(uid);
+      await this.usersService.delete(uid);
+      this.usersService.deleteUserData(uid);
       return {
         data: {},
-        status: 'false',
-        message: `Không tìm thấy người dùng với id ${uid}`,
-      };
-    }
-    const result = await this.usersService.delete(uid);
-    if (result.deletedCount > 0) {
-      return {
-        data: {},
+        message: 'Xóa người dùng thành công',
         status: 'true',
-        message: `Xoá người dùng với id ${uid} thành công`,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        data: {},
+        message: 'Xóa người dùng thất bại',
+        status: 'false',
       };
     }
-    return {
-      data: {},
-      status: 'false',
-      message: `Xoá người dùng với id ${uid} thất bại`,
-    };
   }
 
   @Get(':id/change-status')
@@ -357,13 +353,12 @@ export class UsersController {
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);
-    if (result.length > 0) {
+    if (result.length > 0)
       return {
         data: result,
         status: 'true',
         message: 'Lấy danh sách người dùng từ danh sách uid thành công',
       };
-    }
     return {
       data: {},
       status: 'false',

@@ -296,8 +296,11 @@ export class AppController {
   ) {
     const objects = await this.fileService.getFileUserShared(fileId, offset);
     const result = await this.appService.getUsersByIdArr(objects.sharedTo);
+    const data = result.data.filter(
+      (item) => item !== undefined && item !== null
+    );
     return res.status(HttpStatus.OK).json({
-      data: objects.sharedTo.length > 0 ? result.data : [],
+      data: objects.sharedTo.length > 0 ? data : [],
       status: 'true',
       message: 'Lấy thông tin người dùng chia sẻ của tài liệu thành công',
     });
@@ -627,7 +630,8 @@ export class AppController {
     const object: any = await this.fileService.getFileHistory(fileId, offset);
     for (const item of object.history) {
       const data = await this.appService.getUsersByIdArr([item.user]);
-      item.text = data.data[0].display_name;
+      if (data.data[0]) item.text = data.data[0].display_name;
+      else item.text = '[Tài khoản đã bị xóa]';
       if (item.action === 'open') item.text += ' đã mở tài liệu';
       else if (item.action === 'create') item.text += ' đã tạo tài liệu';
       else if (item.action === 'save') item.text += ' đã xác nhận ký tài liệu';
@@ -764,7 +768,8 @@ export class DocController {
   constructor(
     private readonly fileService: FileService,
     private readonly folderService: FolderService,
-    private readonly appSerivce: AppService
+    private readonly appSerivce: AppService,
+    private readonly s3Service: S3Service
   ) {}
 
   @MessagePattern('get_user_usage')
@@ -776,5 +781,25 @@ export class DocController {
       status: 'true',
       message: 'Lấy số lượng tài liệu thư mục thành công',
     };
+  }
+
+  @MessagePattern('delete_data')
+  async deleteUserData(userId: string) {
+    try {
+      await this.fileService.deleteDataOfUser(userId);
+      await this.folderService.deleteDataOfUser(userId);
+      await this.s3Service.deleteFolder(userId);
+      return {
+        data: {},
+        status: 'true',
+        message: 'Xóa dữ liệu người dùng thành công',
+      };
+    } catch (error) {
+      return {
+        data: {},
+        status: 'false',
+        message: 'Xóa dữ liệu người dùng thất bại',
+      };
+    }
   }
 }

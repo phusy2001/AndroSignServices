@@ -113,4 +113,8 @@ export class FolderService {
       user: userId,
     });
   }
+
+  async deleteDataOfUser(userId: string) {
+    return await this.folderModel.deleteMany({ user: userId });
+  }
 }

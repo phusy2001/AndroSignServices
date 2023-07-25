@@ -118,8 +118,12 @@ export class OrdersController {
       );
       for (const item of data.data) {
         const user = await this.ordersService.getUsersByIdArr([item.user_id]);
-        item.user_email = user.data[0].email;
-        item.user_name = user.data[0].display_name;
+        if (user.data[0]) {
+          item.user_email = user.data[0].email;
+          item.user_name = user.data[0].display_name;
+        } else {
+          item.user_email = '[Tài khoản đã bị xóa]';
+        }
         const plan = await this.plansService.getPlanById(item.plan_id);
         item.plan_name = plan.plan_description;
       }

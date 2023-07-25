@@ -33,6 +33,28 @@ export class S3Service {
     return result;
   }
 
+  async deleteFolder(folderName: string) {
+    const params = {
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Prefix: 'documents/' + folderName,
+    };
+    try {
+      const objects = await this.s3.listObjectsV2(params).promise();
+      if (objects.Contents.length === 0) return;
+      const deleteParams = {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Delete: { Objects: [] },
+      };
+      objects.Contents.forEach((obj) => {
+        deleteParams.Delete.Objects.push({ Key: obj.Key });
+      });
+      await this.s3.deleteObjects(deleteParams).promise();
+      if (objects.IsTruncated) await this.deleteFolder(folderName);
+    } catch (error) {
+      console.error('Error deleting folder:', error);
+    }
+  }
+
   async getFolderCapacity(
     bucketName: string,
     folderPath: string

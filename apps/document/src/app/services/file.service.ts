@@ -453,4 +453,8 @@ export class FileService {
   async getOwnerById(fileId: string) {
     return await this.fileModel.findById(fileId, { user: 1, name: 1 });
   }
+
+  async deleteDataOfUser(userId: string) {
+    return await this.fileModel.deleteMany({ user: userId });
+  }
 }

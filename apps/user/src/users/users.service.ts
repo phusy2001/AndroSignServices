@@ -14,7 +14,8 @@ export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @Inject('REDIS_CLIENT') private readonly redisClient: any,
-    @Inject('ESIGNATURE_SERVICE') private esignatureService: ClientProxy
+    @Inject('ESIGNATURE_SERVICE') private esignatureService: ClientProxy,
+    @Inject('DOCUMENT_SERVICE') private docService: ClientProxy
   ) {}
 
   async onApplicationBootstrap() {
@@ -88,7 +89,8 @@ export class UsersService implements OnApplicationBootstrap {
       const user = await this.userModel
         .findOne({ uid })
         .select({ email: true, display_name: 1, uid: 1 });
-      return user;
+      if (user) return user;
+      else return null;
     });
     const result = await Promise.all(users);
     return result;
@@ -235,7 +237,7 @@ export class UsersService implements OnApplicationBootstrap {
     ]);
   }
 
-  async getCustomers(page, limit) {
+  async getCustomers(page: number, limit: number) {
     const skip = (page - 1) * limit;
     const users = await this.userModel.find().skip(skip).limit(limit).exec();
     return users;
@@ -251,5 +253,9 @@ export class UsersService implements OnApplicationBootstrap {
     return await this.userModel
       .find({ email: { $regex: regex } })
       .select({ uid: 1, _id: 0 });
+  }
+
+  async deleteUserData(uid: string) {
+    return await lastValueFrom(this.docService.send('delete_data', uid));
   }
 }
