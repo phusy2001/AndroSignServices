@@ -1,20 +1,45 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from './schemas/users.schema';
+import { Role, User } from './schemas/users.schema';
 import { auth } from 'firebase-admin';
 import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 import { ClientProxy } from '@nestjs/microservices';
 import { defaultIfEmpty, lastValueFrom } from 'rxjs';
+import { firebase } from '@androsign-microservices/shared';
 
 @Injectable()
-export class UsersService {
+export class UsersService implements OnApplicationBootstrap {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     @Inject('REDIS_CLIENT') private readonly redisClient: any,
     @Inject('ESIGNATURE_SERVICE') private esignatureService: ClientProxy
   ) {}
+
+  async onApplicationBootstrap() {
+    const result = await this.userModel.findOne({ role: 'admin' });
+    if (!result) {
+      firebase
+        .auth()
+        .createUser({
+          email: 'admin@androsign.com',
+          password: 'Admin@123',
+          emailVerified: true,
+        })
+        .then((userRecord: any) => {
+          this.create({
+            display_name: 'Admin',
+            uid: userRecord.uid,
+            email: 'admin@androsign.com',
+            role: Role.ADMIN,
+            fcm_tokens: [],
+            phone_number: '',
+            address: '',
+          });
+        });
+    }
+  }
 
   async create(dto: CreateUserDto) {
     try {
