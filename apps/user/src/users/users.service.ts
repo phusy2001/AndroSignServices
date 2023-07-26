@@ -262,6 +262,23 @@ export class UsersService implements OnApplicationBootstrap {
     return users.length;
   }
 
+  async searchCustomers(role: string, keyword: string) {
+    const query = this.userModel.find();
+    if (keyword !== '') {
+      const regex = new RegExp(`.*${keyword}.*`, 'i');
+      query.find({ email: { $regex: regex } });
+    }
+
+    if (role) {
+      if (role !== 'all') {
+        query.where('role', role);
+      }
+    }
+
+    const users = query.sort({ created_at: -1 }).exec();
+    return users;
+  }
+
   async getUidsByKeyword(keyword: string) {
     const regex = new RegExp(`.*${keyword}.*`, 'i');
     return await this.userModel

@@ -58,7 +58,7 @@ export class AppController {
 
   @Get()
   getData() {
-    return this.appService.getData();
+    //return this.appService.getData();
   }
 
   @MessagePattern('sign_document_img')

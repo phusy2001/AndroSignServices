@@ -350,6 +350,21 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/admin/customers/search')
+  async searchCustomers(@Query('role') role: string, @Query('keyword') keyword: string) {
+    try {
+      const data = await this.usersService.searchCustomers(role, keyword);
+      return {
+        data: data,
+        status: 'true',
+        message: 'Tìm kiếm danh sách người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);
