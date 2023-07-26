@@ -35,7 +35,7 @@ export class AppService implements OnApplicationBootstrap {
           });
       });
     this.planService
-      .checkInitalPlan('GÓI TRẢ PHÍ', 'Monthly')
+      .checkInitalPlan('GÓI TRẢ PHÍ', 'M6')
       .then((result: any) => {
         if (!result)
           this.planService.createPlan({

@@ -123,9 +123,12 @@ export class OrdersController {
           item.user_name = user.data[0].display_name;
         } else {
           item.user_email = '[Tài khoản đã bị xóa]';
+          item.user_name = '';
         }
         const plan = await this.plansService.getPlanById(item.plan_id);
-        item.plan_name = plan.plan_description;
+        if (plan) {
+          item.plan_name = plan.plan_description;
+        }
       }
       return {
         data: data,

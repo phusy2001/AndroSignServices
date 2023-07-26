@@ -153,8 +153,9 @@ export class AppController {
   @Post('/editFile')
   async editFile(@Res() res, @UserId() userId, @Body() body) {
     // const password = await this.appService.encryptPassword(body.passCa);
+    const owner = await this.fileService.getOwnerById(body.id);
     const result = await this.appService.signDocument({
-      PdfPath: userId + '/' + body.id + '.pdf',
+      PdfPath: owner.user + '/' + body.id + '.pdf',
       PfxPath: userId + '.pfx',
       PassWord: body.passCa,
       Xfdf: body.xfdf,

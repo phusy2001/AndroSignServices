@@ -56,11 +56,6 @@ export class AppController {
     };
   }
 
-  @Get()
-  getData() {
-    //return this.appService.getData();
-  }
-
   @MessagePattern('sign_document_img')
   async signDocumentWithImg(data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
