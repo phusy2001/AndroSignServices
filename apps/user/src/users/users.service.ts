@@ -110,6 +110,20 @@ export class UsersService implements OnApplicationBootstrap {
     return user;
   }
 
+  async createDomainUser(userDto: CreateUserDto) {
+    const domainUser = await auth().createUser({
+      email: userDto.email,
+      emailVerified: true,
+      phoneNumber: userDto.phone_number,
+      password: 'User@123',
+      displayName: userDto.display_name,
+      photoURL: 'http://www.example.com/12345678/photo.png',
+      disabled: false,
+    });
+    const user = await this.create(userDto);
+    return user;
+  }
+
   async changeStatus(uid: string): Promise<UserRecord> {
     const user = await auth().getUser(uid);
     const currentStatus = user.disabled;
