@@ -37,8 +37,33 @@ export class UsersService implements OnApplicationBootstrap {
             fcm_tokens: [],
             phone_number: '',
             address: '',
+            disabled: false,
           });
         });
+    }
+  }
+
+  async createUserByAdmin(dto: any) {
+    try {
+      const userRecord = await firebase.auth().createUser({
+        email: dto.email,
+        password: dto.password,
+        emailVerified: true,
+      });
+      const domainUser = await this.create({
+        display_name: dto.display_name,
+        uid: userRecord.uid,
+        email: dto.email,
+        role: dto.role,
+        fcm_tokens: [],
+        phone_number: '',
+        address: '',
+        disabled: false,
+      });
+
+      return domainUser;
+    } catch (error) {
+      console.log(error);
     }
   }
 

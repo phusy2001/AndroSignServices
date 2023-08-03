@@ -12,8 +12,9 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
-import { AuthGuard } from 'libs/shared/src/lib/guards/auth.guard';
+import { AuthGuard } from '@androsign-microservices/shared';
 import { UserId, firebase } from '@androsign-microservices/shared';
+import { auth } from 'firebase-admin';
 
 @Controller('users')
 export class UsersController {
@@ -119,6 +120,7 @@ export class UsersController {
   @Delete(':id')
   async delete(@Param('id') uid: string) {
     try {
+      console.log('uid', uid);
       await firebase.auth().deleteUser(uid);
       await this.usersService.delete(uid);
       this.usersService.deleteUserData(uid);
@@ -150,16 +152,23 @@ export class UsersController {
     }
     const updatedUser = await this.usersService.changeStatus(uid);
     if (updatedUser.disabled) {
+      const domainUser = await this.usersService.update(uid, {
+        disabled: true,
+      });
+      await auth().revokeRefreshTokens(uid);
       return {
         data: {},
         status: 'true',
-        message: `Người dùng với ${uid} đã vô hiệu hoá`,
+        message: `Người dùng với ${domainUser.display_name} đã vô hiệu hoá`,
       };
     } else {
+      const domainUser = await this.usersService.update(uid, {
+        disabled: false,
+      });
       return {
         data: {},
         status: 'true',
-        message: `Người dùng với ${uid} đã mở lại`,
+        message: `Người dùng với ${domainUser.display_name} đã mở lại`,
       };
     }
   }
@@ -336,6 +345,25 @@ export class UsersController {
   }
 
   @UseGuards(AuthGuard)
+  @Post('/admin/users')
+  async createUserByAdmin(@Body() dto: any) {
+    try {
+      const data = await this.usersService.createUserByAdmin(dto);
+      return {
+        data: data,
+        status: true,
+        message: 'Tạo người dùng thành công',
+      };
+    } catch (error) {
+      return {
+        data: {},
+        status: false,
+        message: 'Tạo người dùng thất bại',
+      };
+    }
+  }
+
+  @UseGuards(AuthGuard)
   @Get('/admin/customers/count')
   async getCustomersQuantity() {
     try {
@@ -352,7 +380,10 @@ export class UsersController {
 
   @UseGuards(AuthGuard)
   @Get('/admin/customers/search')
-  async searchCustomers(@Query('role') role: string, @Query('keyword') keyword: string) {
+  async searchCustomers(
+    @Query('role') role: string,
+    @Query('keyword') keyword: string
+  ) {
     try {
       const data = await this.usersService.searchCustomers(role, keyword);
       return {

@@ -25,6 +25,8 @@ export class CreateUserDto {
 
   @Allow()
   role: Role;
+
+  disabled: boolean;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}
