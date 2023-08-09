@@ -413,7 +413,7 @@ export class UsersController {
         message: 'Lấy danh sách người dùng từ danh sách uid thành công',
       };
     return {
-      data: {},
+      data: [],
       status: 'false',
       message: 'Lấy danh sách người dùng từ danh sách uid thất bại',
     };

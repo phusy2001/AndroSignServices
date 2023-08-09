@@ -313,9 +313,11 @@ export class AppController {
   ) {
     const objects = await this.fileService.getFileUserShared(fileId, offset);
     const result = await this.appService.getUsersByIdArr(objects.sharedTo);
-    const data = result.data.filter(
-      (item: any) => item !== undefined && item !== null
-    );
+    let data = [];
+    if (result.data.length > 0)
+      data = result.data.filter(
+        (item: any) => item !== undefined && item !== null
+      );
     return res.status(HttpStatus.OK).json({
       data: objects.sharedTo.length > 0 ? data : [],
       status: 'true',
