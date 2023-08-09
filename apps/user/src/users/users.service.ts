@@ -15,7 +15,8 @@ export class UsersService implements OnApplicationBootstrap {
     @InjectModel(User.name) private userModel: Model<User>,
     @Inject('REDIS_CLIENT') private readonly redisClient: any,
     @Inject('ESIGNATURE_SERVICE') private esignatureService: ClientProxy,
-    @Inject('DOCUMENT_SERVICE') private docService: ClientProxy
+    @Inject('DOCUMENT_SERVICE') private docService: ClientProxy,
+    @Inject('BACKGROUND_SERVICE') private backgroundService: ClientProxy
   ) {}
 
   async onApplicationBootstrap() {
@@ -313,5 +314,21 @@ export class UsersService implements OnApplicationBootstrap {
 
   async deleteUserData(uid: string) {
     return await lastValueFrom(this.docService.send('delete_data', uid));
+  }
+
+  async sendEmailNotification(
+    email: string,
+    subject: string,
+    content: string,
+    subjectContent: string
+  ) {
+    return await lastValueFrom(
+      this.backgroundService.send('send_email', {
+        email,
+        subject,
+        content,
+        subjectContent,
+      })
+    );
   }
 }

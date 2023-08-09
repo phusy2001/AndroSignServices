@@ -207,6 +207,13 @@ export class UsersController {
         message: 'Không thể thêm bản thân người dùng',
       };
     }
+    this.usersService.sendEmailNotification(
+      email,
+      'AndroSign mời bạn sử dụng dịch vụ',
+      `Bạn đã được người dùng của AndroSign mời tham gia thực hiện ký kết văn bản. Có vẻ như bạn vẫn chưa có tài khoản trên hệ thống, chúng tôi hi vọng bạn sẽ đăng ký và sử dụng dịch vụ của chúng tôi.
+      <p><a href="https://temp-mail.org/vi/view/64d25a8654883312c4c3cb33">Bấm vào đây để tải xuống ứng dụng.</a></p>`,
+      'Lời mời tham gia ứng dụng'
+    );
     return {
       data: {},
       status: 'false',

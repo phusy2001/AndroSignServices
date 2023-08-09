@@ -95,10 +95,9 @@ export class FolderService {
   }
 
   async findNameByUser(userId: string, name: string) {
-    return await this.folderModel.findOne(
-      { user: userId, name: name },
-      { name: 1 }
-    );
+    return await this.folderModel
+      .find({ user: userId, name: name }, { name: 1 })
+      .countDocuments();
   }
 
   async renameFolder(id: string, name: string) {
