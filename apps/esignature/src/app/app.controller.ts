@@ -6,6 +6,7 @@ import {
   Post,
   Query,
   Res,
+  UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -109,14 +110,34 @@ export class AppController {
     };
   }
 
+  // @MessagePattern('toPdf')
+  // async convertFile(fullName: string) {
+  //   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+  //   const result = await this.appService.convertFile(fullName);
+  //   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
+  //   if (result.data.status)
+  //     return {
+  //       data: result.data.data,
+  //       status: 'true',
+  //       message: 'Converted',
+  //     };
+  //   return {
+  //     data: {},
+  //     status: 'false',
+  //     message: 'Signed PDF Failed',
+  //   };
+  // }
+
+  // @Post('toPdf')
   @MessagePattern('toPdf')
-  async convertFile(fullName: string) {
+  @UseInterceptors(FileInterceptor('file'))
+  async convertFile(@UploadedFile() file: Express.Multer.File) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    const result = await this.appService.convertFile(fullName);
+    const result = await this.appService.convertFile(file);
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
     if (result.data.status)
       return {
-        data: result.data.data,
+        data: Buffer.from(result.data.data, 'base64'),
         status: 'true',
         message: 'Converted',
       };

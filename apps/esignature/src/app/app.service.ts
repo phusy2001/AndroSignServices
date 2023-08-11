@@ -3,13 +3,16 @@ import { Injectable } from '@nestjs/common';
 import * as https from 'https';
 import * as CryptoJS from 'crypto-js';
 import { Observable, lastValueFrom } from 'rxjs';
+import { Multer } from 'multer';
+
 @Injectable()
 export class AppService {
   constructor(private readonly httpService: HttpService) {
     this.httpsAgent = new https.Agent({
       rejectUnauthorized: false,
     });
-    this.certHost = process.env.ESIGNATURE_SERVICE_API;
+    // this.certHost = process.env.ESIGNATURE_SERVICE_API;
+    this.certHost = 'https://localhost:7207/api/Cer';
     this.createCAMethod = '/CreateSelfCA';
     this.signPDFImgMethod = '/SignPDFWithImg';
     this.signPDFCAMethod = '/SignPDFWithCA';
@@ -98,14 +101,18 @@ export class AppService {
     );
   }
 
-  async convertFile(fullName: string): Promise<any> {
+  async convertFile(file: Express.Multer.File): Promise<any> {
     return await lastValueFrom(
       this.httpService.request({
         url: this.convertMethod,
         method: 'POST',
         baseURL: this.certHost,
         data: {
-          fullName: fullName,
+          fileName: file.originalname,
+          content: Buffer.from(file.buffer).toString('base64'),
+        },
+        headers: {
+          'Content-Type': 'multipart/form-data;',
         },
       })
     );
