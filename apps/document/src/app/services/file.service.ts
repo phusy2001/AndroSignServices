@@ -213,6 +213,54 @@ export class FileService {
       });
   }
 
+  async searchFilesInIdArray(
+    idArr: Array<string>,
+    userId: string,
+    keyword: string,
+    offset: number
+  ) {
+    const numLimit = 10;
+    const regex = new RegExp(`.*${keyword}.*`, 'i');
+    return await this.fileModel
+      .find({
+        _id: { $in: idArr },
+        deleted: false,
+        name: { $regex: regex },
+      })
+      .select({
+        fileOwner: {
+          $cond: {
+            if: { $eq: ['$user', userId] },
+            then: true,
+            else: false,
+          },
+        },
+        fileStarred: {
+          $cond: {
+            if: { $in: [userId, '$starred'] },
+            then: true,
+            else: false,
+          },
+        },
+        completed: {
+          $cond: {
+            if: { $eq: ['$stepIndex', '$stepTotal'] },
+            then: true,
+            else: false,
+          },
+        },
+        total: 1,
+        _id: 1,
+        name: 1,
+        stepUser: 1,
+        path: 1,
+        updated_at: 1,
+      })
+      .sort({ updated_at: 'desc' })
+      .limit(numLimit)
+      .skip((offset - 1) * numLimit);
+  }
+
   async markFile(fileId: string, userId: string) {
     return await this.fileModel.findByIdAndUpdate(fileId, {
       $addToSet: { starred: userId },
@@ -349,10 +397,10 @@ export class FileService {
   }
 
   async findNameByUser(userId: string, name: string) {
-    return await this.fileModel.findOne(
-      { user: userId, name: name },
-      { name: 1 }
-    );
+    // const regexPattern = new RegExp(`^${name}\\(\\d+\\)$`);
+    return await this.fileModel
+      .find({ user: userId, name: name }, { name: 1 })
+      .countDocuments();
   }
 
   async getTotalCount(completed: boolean, userId?: string) {
@@ -400,5 +448,13 @@ export class FileService {
       return await this.fileModel.countDocuments({
         created_at: { $gte: startDate },
       });
+  }
+
+  async getOwnerById(fileId: string) {
+    return await this.fileModel.findById(fileId, { user: 1, name: 1 });
+  }
+
+  async deleteDataOfUser(userId: string) {
+    return await this.fileModel.deleteMany({ user: userId });
   }
 }

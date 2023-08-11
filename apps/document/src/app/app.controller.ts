@@ -19,6 +19,7 @@ import { File } from './schemas/file.schema';
 import { S3Service } from './services/s3.service';
 import { FolderService } from './services/folder.service';
 import { UserId, AuthGuard } from '@androsign-microservices/shared';
+import { MessagePattern } from '@nestjs/microservices';
 
 @UseGuards(AuthGuard)
 @Controller()
@@ -37,44 +38,49 @@ export class AppController {
     @UploadedFile() pdfFile: Express.Multer.File,
     @Body() body: File
   ) {
-    const isExisted = await this.fileService.findNameByUser(
-      body.user,
-      body.name
+    // const count = await this.fileService.findNameByUser(body.user, body.name);
+    // const now = new Date();
+    // if (count > 0) body.name += `-${now.getTime()}`;
+    const object = await this.fileService.create(body);
+    const result = await this.s3Service.upload(
+      pdfFile.buffer,
+      body.user + '/' + object._id + '.pdf'
     );
-    if (isExisted) {
-      return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'false',
-        message: 'Tên tài liệu đã tồn tại',
-      });
-    } else {
-      const object = await this.fileService.create(body);
-      const result = await this.s3Service.upload(
-        pdfFile.buffer,
-        body.user + '/' + object._id + '.pdf'
-      );
-      if (result) {
-        this.fileService.updatePathById(object._id, result.Location);
-        this.fileService.updateFileHistory(object._id, body.user, 'create');
-        const data = await this.appService.getUserFcmtoken(body.stepUser);
+    if (result) {
+      this.fileService.updatePathById(object._id, result.Location);
+      this.fileService.updateFileHistory(object._id, body.user, 'create');
+      this.appService.getUserFcmtoken(body.stepUser).then((data: any) => {
         if (data.data.fcm_tokens)
           this.appService.sendUserNotification(
             data.data.fcm_tokens,
             'Thông báo',
             `Tài liệu  ${body.name} đang chờ bạn ký`
           );
-        return res.status(HttpStatus.OK).json({
-          data: {},
-          status: 'true',
-          message: 'Tài liệu được tải lên thành công',
-        });
-      }
+      });
+      const owner = await this.appService.getUsersByIdArr([object.user]);
+      this.appService.getUsersByIdArr(object.sharedTo).then((data: any) => {
+        if (data.data.length > 0) {
+          for (const item of data.data) {
+            this.appService.sendEmailNotification(
+              item.email,
+              `AndroSign mời bạn ký tài liệu ${object.name}`,
+              `Bạn được mời bởi <a href="mailto:${owner.data[0].email}">${owner.data[0].email}</a> để tham gia vào ký kết văn bản <b>${object.name}</b>.`,
+              `Lời mời tham gia ký kết tài liệu`
+            );
+          }
+        }
+      });
       return res.status(HttpStatus.OK).json({
         data: {},
-        status: 'false',
-        message: 'Tài liệu tải lên thất bại',
+        status: 'true',
+        message: 'Tài liệu được tải lên thành công',
       });
     }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Tài liệu tải lên thất bại',
+    });
   }
 
   @Post('/deleteFile')
@@ -137,11 +143,12 @@ export class AppController {
 
   @Post('/editFile')
   async editFile(@Res() res, @UserId() userId, @Body() body) {
-    const password = await this.appService.encryptPassword(body.passCa);
+    // const password = await this.appService.encryptPassword(body.passCa);
+    const owner = await this.fileService.getOwnerById(body.id);
     const result = await this.appService.signDocument({
-      PdfPath: userId + '/' + body.id + '.pdf',
+      PdfPath: owner.user + '/' + body.id + '.pdf',
       PfxPath: userId + '.pfx',
-      PassWord: password.data,
+      PassWord: body.passCa,
       Xfdf: body.xfdf,
       StepNo: `${body.stepOld}`,
     });
@@ -163,6 +170,29 @@ export class AppController {
                 `Tài liệu ${object.name} đã hoàn tất`
               );
           });
+          this.appService.getUsersByIdArr([object.user]).then((data: any) => {
+            this.appService.sendEmailNotification(
+              data.data[0].email,
+              `AndroSign tài liệu ${object.name} đã hoàn thành`,
+              `Tài liệu <b>${object.name}</b> đã hoàn thành quy trình ký kết.
+              <p><a href="${object.path}">Bấm vào đây để tải xuống tài liệu</a></p>`,
+              `Thông báo tài liệu hoàn thành`
+            );
+          });
+          this.appService.getUsersByIdArr(object.sharedTo).then((data: any) => {
+            if (data.data.length > 0) {
+              for (const item of data.data) {
+                if (item !== undefined && item !== null)
+                  this.appService.sendEmailNotification(
+                    item.email,
+                    `AndroSign tài liệu ${object.name} đã hoàn thành`,
+                    `Tài liệu <b>${object.name}</b> đã hoàn thành quy trình ký kết.
+                    <p><a href="${object.path}">Bấm vào đây để tải xuống tài liệu</a></p>`,
+                    `Thông báo tài liệu hoàn thành`
+                  );
+              }
+            }
+          });
         } else {
           this.appService.getUserFcmtoken(body.user).then((data: any) => {
             if (data.data.fcm_tokens)
@@ -171,6 +201,16 @@ export class AppController {
                 'Thông báo',
                 `Tài liệu ${object.name} đang chờ bạn ký`
               );
+          });
+          this.appService.getUsersByIdArr([body.user]).then((data: any) => {
+            if (data.data.length > 0)
+              if (data.data[0] !== undefined && data.data[0] !== null)
+                this.appService.sendEmailNotification(
+                  data.data[0].email,
+                  `AndroSign nhắc nhở ký kết tài liệu ${object.name}`,
+                  `Tài liệu <b>${object.name}</b> hiện đang chờ bạn để xác nhận ký. Vui lòng truy cập vào ứng dụng để thực hiện việc ký kết văn bản.`,
+                  `Thông báo nhắc nhở ký kết văn bản`
+                );
           });
         }
         return res.status(HttpStatus.OK).json({
@@ -200,24 +240,48 @@ export class AppController {
         });
       const result = await this.fileService.addUserToSharedFile(uid, body.id);
       if (result) {
-        const data = await this.appService.getUserFcmtoken(uid);
-        if (data.data.fcm_tokens)
-          this.appService.sendUserNotification(
-            data.data.fcm_tokens,
-            'Thông báo',
-            `Tài liệu ${result.name} đã được chia sẻ với bạn`
-          );
+        this.appService.getUserFcmtoken(uid).then((data: any) => {
+          if (data.data.fcm_tokens)
+            this.appService.sendUserNotification(
+              data.data.fcm_tokens,
+              'Thông báo',
+              `Tài liệu ${result.name} đã được chia sẻ với bạn`
+            );
+        });
+        this.fileService.getOwnerById(body.id).then((data: any) => {
+          this.appService.getUsersByIdArr([data.user]).then((owner: any) => {
+            this.appService.sendEmailNotification(
+              body.email,
+              `AndroSign tài liệu ${data.name} được chia sẻ với bạn`,
+              `Bạn được chia sẻ tài liệu văn bản <b>${data.name}</b> bởi người dùng <a href="mailto:${owner.data[0].email}">${owner.data[0].email}</a>.`,
+              `Tài liệu chia sẻ mới`
+            );
+          });
+        });
         return res.status(HttpStatus.OK).json({
           data: {},
           status: 'true',
           message: 'Chia sẻ tài liệu cho người dùng thành công',
         });
       }
+    } else {
+      this.appService.sendEmailNotification(
+        body.email,
+        'AndroSign mời bạn sử dụng dịch vụ',
+        `Bạn đã được người dùng của AndroSign mời tham gia thực hiện ký kết văn bản. Có vẻ như bạn vẫn chưa có tài khoản trên hệ thống, chúng tôi hi vọng bạn sẽ đăng ký và sử dụng dịch vụ của chúng tôi.
+        <p><a href="https://temp-mail.org/vi/view/64d25a8654883312c4c3cb33">Bấm vào đây để tải xuống ứng dụng.</a></p>`,
+        'Lời mời tham gia ứng dụng'
+      );
+      return res.status(HttpStatus.OK).json({
+        data: {},
+        status: 'false',
+        message: 'Email người dùng không tồn tại trên hệ thống',
+      });
     }
     return res.status(HttpStatus.OK).json({
       data: {},
       status: 'false',
-      message: 'Tài liệu được chia sẻ thất bại',
+      message: 'Chia sẻ tài liệu thất bại',
     });
   }
 
@@ -249,8 +313,13 @@ export class AppController {
   ) {
     const objects = await this.fileService.getFileUserShared(fileId, offset);
     const result = await this.appService.getUsersByIdArr(objects.sharedTo);
+    let data = [];
+    if (result.data.length > 0)
+      data = result.data.filter(
+        (item: any) => item !== undefined && item !== null
+      );
     return res.status(HttpStatus.OK).json({
-      data: objects.sharedTo.length > 0 ? result.data : [],
+      data: objects.sharedTo.length > 0 ? data : [],
       status: 'true',
       message: 'Lấy thông tin người dùng chia sẻ của tài liệu thành công',
     });
@@ -285,31 +354,22 @@ export class AppController {
 
   @Post('/createFolder')
   async createFolder(@Res() res, @Body() body) {
-    const isExisted = await this.folderService.findNameByUser(
-      body.user,
-      body.name
-    );
-    if (isExisted) {
+    // const count = await this.folderService.findNameByUser(body.user, body.name);
+    // const now = new Date();
+    // if (count > 0) body.name += `-${now.getTime()}`;
+    const result = await this.folderService.create(body);
+    if (result) {
       return res.status(HttpStatus.OK).json({
         data: {},
-        status: 'false',
-        message: 'Tên thư mục đã tồn tại',
-      });
-    } else {
-      const result = await this.folderService.create(body);
-      if (result) {
-        return res.status(HttpStatus.OK).json({
-          data: {},
-          status: 'true',
-          message: 'Thư mục mới đã được tạo thành công',
-        });
-      }
-      return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'false',
-        message: 'Tạo thư mục mới thất bại',
+        status: 'true',
+        message: 'Thư mục mới đã được tạo thành công',
       });
     }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Tạo thư mục mới thất bại',
+    });
   }
 
   @Get('/getFolders')
@@ -359,21 +419,37 @@ export class AppController {
     @Res() res,
     @UserId() userId,
     @Query('id') folderId,
-    @Query('offset') offset
+    @Query('offset') offset,
+    @Query('keyword') keyword
   ) {
-    const result = await this.folderService.getFilesIdByFolderId(
-      folderId,
-      offset
-    );
-    const objects = await this.fileService.getFilesByIdArray(
-      result.files,
-      userId
-    );
-    return res.status(HttpStatus.OK).json({
-      data: { data: objects },
-      status: 'true',
-      message: 'Lấy danh sách tài liệu trong thư mục thành công',
-    });
+    if (keyword === '') {
+      const result = await this.folderService.getFilesIdByFolderId(
+        folderId,
+        offset
+      );
+      const objects = await this.fileService.getFilesByIdArray(
+        result.files,
+        userId
+      );
+      return res.status(HttpStatus.OK).json({
+        data: { data: objects },
+        status: 'true',
+        message: 'Lấy danh sách tài liệu trong thư mục thành công',
+      });
+    } else {
+      const result = await this.folderService.getAllFileIdsInFolder(folderId);
+      const objects = await this.fileService.searchFilesInIdArray(
+        result.files,
+        userId,
+        keyword,
+        offset
+      );
+      return res.status(HttpStatus.OK).json({
+        data: { data: objects },
+        status: 'true',
+        message: 'Lấy danh sách tài liệu trong thư mục thành công',
+      });
+    }
   }
 
   @Post('/updateFileInFolder')
@@ -564,7 +640,8 @@ export class AppController {
     const object: any = await this.fileService.getFileHistory(fileId, offset);
     for (const item of object.history) {
       const data = await this.appService.getUsersByIdArr([item.user]);
-      item.text = data.data[0].display_name;
+      if (data.data[0]) item.text = data.data[0].display_name;
+      else item.text = '[Tài khoản đã bị xóa]';
       if (item.action === 'open') item.text += ' đã mở tài liệu';
       else if (item.action === 'create') item.text += ' đã tạo tài liệu';
       else if (item.action === 'save') item.text += ' đã xác nhận ký tài liệu';
@@ -582,57 +659,46 @@ export class AppController {
 
   @Post('/renameFile')
   async renameFile(@Res() res, @UserId() userId, @Body() body) {
-    const isExisted = await this.fileService.findNameByUser(userId, body.name);
-    if (isExisted) {
+    // const count = await this.fileService.findNameByUser(userId, body.name);
+    // const now = new Date();
+    // if (count > 0) body.name += `-${now.getTime()}`;
+    const result = await this.fileService.renameFile(body.id, body.name);
+    if (result) {
       return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'false',
-        message: 'Tên tài liệu đã tồn tại',
-      });
-    } else {
-      const result = await this.fileService.renameFile(body.id, body.name);
-      if (result) {
-        return res.status(HttpStatus.OK).json({
-          data: {},
-          status: 'true',
-          message: 'Đổi tên tài liệu thành công',
-        });
-      }
-      return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'false',
-        message: 'Đổi tên tài liệu thất bại',
+        data: {
+          name: body.name,
+        },
+        status: 'true',
+        message: 'Đổi tên tài liệu thành công',
       });
     }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Đổi tên tài liệu thất bại',
+    });
   }
 
   @Post('/renameFolder')
   async renameFolder(@Res() res, @UserId() userId, @Body() body) {
-    const isExisted = await this.folderService.findNameByUser(
-      userId,
-      body.name
-    );
-    if (isExisted) {
+    // const count = await this.folderService.findNameByUser(userId, body.name);
+    // const now = new Date();
+    // if (count > 0) body.name += `-${now.getTime()}`;
+    const result = await this.folderService.renameFolder(body.id, body.name);
+    if (result) {
       return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'false',
-        message: 'Tên thư mục đã tồn tại',
-      });
-    } else {
-      const result = await this.folderService.renameFolder(body.id, body.name);
-      if (result) {
-        return res.status(HttpStatus.OK).json({
-          data: {},
-          status: 'true',
-          message: 'Đổi tên thư mục thành công',
-        });
-      }
-      return res.status(HttpStatus.OK).json({
-        data: {},
-        status: 'false',
-        message: 'Đổi tên thư mục thất bại',
+        data: {
+          name: body.name,
+        },
+        status: 'true',
+        message: 'Đổi tên thư mục thành công',
       });
     }
+    return res.status(HttpStatus.OK).json({
+      data: {},
+      status: 'false',
+      message: 'Đổi tên thư mục thất bại',
+    });
   }
 
   @Get('/admin/getOverviewDocuments')
@@ -674,7 +740,7 @@ export class AppController {
     const usage = result / 1048576;
     return res.status(HttpStatus.OK).json({
       data: {
-        documentUsage: usage.toFixed(2),
+        documentUsage: usage.toFixed(2) + ' MB',
       },
       status: 'true',
       message: 'Lấy dung lượng bộ nhớ thành công',
@@ -694,21 +760,45 @@ export class AppController {
       message: 'Lấy thống kê người dùng thành công',
     });
   }
+}
 
-  @Get('/test')
-  async getUsageByUserId(@Res() res, @Query('id') userId) {
-    const result = await this.s3Service.getFolderCapacity(
-      'androsign',
-      'documents/' + userId
-    );
-    // Lấy dung lượng toàn bộ File trên S3 mà User này đã dùng
+@Controller()
+export class DocController {
+  constructor(
+    private readonly fileService: FileService,
+    private readonly folderService: FolderService,
+    private readonly appSerivce: AppService,
+    private readonly s3Service: S3Service
+  ) {}
 
-    const result2 = await this.fileService.getTotalCount(true, userId);
-    // Lấy tổng số lượng Doc của User => true là số lượng doc đã ký hoàn thành, false là toàn bộ
+  @MessagePattern('get_user_usage')
+  async getUserDocCount(userId: string) {
+    const files = await this.fileService.getTotalCount(false, userId);
+    const folders = await this.folderService.getTotalFolders(userId);
+    return {
+      data: { files, folders },
+      status: 'true',
+      message: 'Lấy số lượng tài liệu thư mục thành công',
+    };
+  }
 
-    return res.status(HttpStatus.OK).json({
-      usage: result,
-      count: result2,
-    });
+  @MessagePattern('delete_data')
+  async deleteUserData(userId: string) {
+    try {
+      await this.fileService.deleteDataOfUser(userId);
+      await this.folderService.deleteDataOfUser(userId);
+      await this.s3Service.deleteFolder(userId);
+      return {
+        data: {},
+        status: 'true',
+        message: 'Xóa dữ liệu người dùng thành công',
+      };
+    } catch (error) {
+      return {
+        data: {},
+        status: 'false',
+        message: 'Xóa dữ liệu người dùng thất bại',
+      };
+    }
   }
 }

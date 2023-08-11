@@ -1,4 +1,4 @@
-import { Ctx, MessagePattern, RmqContext } from '@nestjs/microservices';
+import { MessagePattern } from '@nestjs/microservices';
 import {
   Controller,
   Get,
@@ -8,11 +8,13 @@ import {
   Delete,
   Param,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
-import { AuthGuard } from 'libs/shared/src/lib/guards/auth.guard';
-import { UserId } from '@androsign-microservices/shared';
+import { AuthGuard } from '@androsign-microservices/shared';
+import { UserId, firebase } from '@androsign-microservices/shared';
+import { auth } from 'firebase-admin';
 
 @Controller('users')
 export class UsersController {
@@ -21,21 +23,18 @@ export class UsersController {
   @Post()
   async create(@Body() dto: CreateUserDto) {
     const result = await this.find(dto.uid);
-
     if (result.status === 'false') {
       const user = await this.usersService.create(dto);
-
       return {
         data: user,
         status: 'true',
-        message: 'Tạo người dùng thành công.',
+        message: 'Tạo người dùng thành công',
       };
     }
-
     return {
       data: {},
       status: 'false',
-      message: 'Tạo người dùng thất bại.',
+      message: 'Tạo người dùng thất bại',
     };
   }
 
@@ -43,19 +42,17 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async findAll() {
     const users = await this.usersService.findAll();
-
     if (users) {
       return {
         data: users,
         status: 'true',
-        message: 'Lấy toàn bộ người dùng thành công.',
+        message: 'Lấy toàn bộ người dùng thành công',
       };
     }
-
     return {
       data: {},
       status: 'false',
-      message: 'Lấy toàn bộ người dùng thất bại.',
+      message: 'Lấy toàn bộ người dùng thất bại',
     };
   }
 
@@ -63,7 +60,6 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async find(@Param('id') uid: string) {
     const user = await this.usersService.find(uid);
-
     if (user) {
       return {
         data: user,
@@ -71,7 +67,6 @@ export class UsersController {
         message: `Lấy người dùng với id ${uid} thành công`,
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -82,7 +77,6 @@ export class UsersController {
   @Get(':id/get-created-date')
   async getCreatedDate(@Param('id') uid: string) {
     const user = await this.usersService.getCreatedDate(uid);
-
     if (user) {
       return {
         data: user,
@@ -90,7 +84,6 @@ export class UsersController {
         message: `Lấy ngày tạo với id ${uid} thành công`,
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -102,7 +95,6 @@ export class UsersController {
   @UseGuards(AuthGuard)
   async update(@Param('id') uid: string, @Body() dto: UpdateUserDto) {
     const user = await this.usersService.find(uid);
-
     if (!user) {
       return {
         data: {},
@@ -110,9 +102,7 @@ export class UsersController {
         message: `Không tìm thấy người dùng với id ${uid} `,
       };
     }
-
     const result = await this.usersService.update(uid, dto);
-
     if (result) {
       return {
         data: result,
@@ -120,7 +110,6 @@ export class UsersController {
         message: `Cập nhật người dùng thành công`,
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -130,38 +119,30 @@ export class UsersController {
 
   @Delete(':id')
   async delete(@Param('id') uid: string) {
-    const user = await this.usersService.find(uid);
-
-    if (!user) {
+    try {
+      console.log('uid', uid);
+      await firebase.auth().deleteUser(uid);
+      await this.usersService.delete(uid);
+      this.usersService.deleteUserData(uid);
       return {
         data: {},
-        status: 'false',
-        message: `Không tìm thấy người dùng với id ${uid}`,
-      };
-    }
-
-    const result = await this.usersService.delete(uid);
-
-    if (result.deletedCount > 0) {
-      return {
-        data: {},
+        message: 'Xóa người dùng thành công',
         status: 'true',
-        message: `Xoá người dùng với id ${uid} thành công`,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        data: {},
+        message: 'Xóa người dùng thất bại',
+        status: 'false',
       };
     }
-
-    return {
-      data: {},
-      status: 'false',
-      message: `Xoá người dùng với id ${uid} thất bại`,
-    };
   }
 
   @Get(':id/change-status')
   @UseGuards(AuthGuard)
   async changeStatus(@Param('id') uid: string) {
     const user = await this.usersService.find(uid);
-
     if (!user) {
       return {
         data: {},
@@ -169,20 +150,25 @@ export class UsersController {
         message: `Không tìm thấy người dùng với id ${uid}`,
       };
     }
-
     const updatedUser = await this.usersService.changeStatus(uid);
-
     if (updatedUser.disabled) {
+      const domainUser = await this.usersService.update(uid, {
+        disabled: true,
+      });
+      await auth().revokeRefreshTokens(uid);
       return {
         data: {},
         status: 'true',
-        message: `Người dùng với ${uid} đã vô hiệu hoá`,
+        message: `Người dùng với ${domainUser.display_name} đã vô hiệu hoá`,
       };
     } else {
+      const domainUser = await this.usersService.update(uid, {
+        disabled: false,
+      });
       return {
         data: {},
         status: 'true',
-        message: `Người dùng với ${uid} đã mở lại`,
+        message: `Người dùng với ${domainUser.display_name} đã mở lại`,
       };
     }
   }
@@ -190,7 +176,6 @@ export class UsersController {
   @Post('/remove-fcm-token')
   async removeFcmToken(@Body() dto) {
     const user = await this.usersService.removeFcmToken(dto.uid, dto.fcmToken);
-
     if (user) {
       return {
         data: user,
@@ -198,7 +183,6 @@ export class UsersController {
         message: 'Xoá fcm token thành công',
       };
     }
-
     return {
       data: {},
       status: 'false',
@@ -223,6 +207,13 @@ export class UsersController {
         message: 'Không thể thêm bản thân người dùng',
       };
     }
+    this.usersService.sendEmailNotification(
+      email,
+      'AndroSign mời bạn sử dụng dịch vụ',
+      `Bạn đã được người dùng của AndroSign mời tham gia thực hiện ký kết văn bản. Có vẻ như bạn vẫn chưa có tài khoản trên hệ thống, chúng tôi hi vọng bạn sẽ đăng ký và sử dụng dịch vụ của chúng tôi.
+      <p><a href="https://temp-mail.org/vi/view/64d25a8654883312c4c3cb33">Bấm vào đây để tải xuống ứng dụng.</a></p>`,
+      'Lời mời tham gia ứng dụng'
+    );
     return {
       data: {},
       status: 'false',
@@ -234,14 +225,12 @@ export class UsersController {
   async createUserCa(@Param('id') uid: string, @Body() dto) {
     try {
       const { email, passwordCa, expireAfter } = dto;
-
       const user = await this.usersService.createUserCa(
         email,
         uid,
         passwordCa,
         30
       );
-
       if (user) {
         return {
           data: user,
@@ -249,7 +238,6 @@ export class UsersController {
           message: 'Create User Ca successfully',
         };
       }
-
       return {
         data: {},
         status: 'false',
@@ -343,20 +331,89 @@ export class UsersController {
     }
   }
 
+  @UseGuards(AuthGuard)
+  @Get('/admin/customers')
+  async getCustomers(
+    @Query('page') page: number,
+    @Query('limit') limit: number
+  ) {
+    try {
+      page = page ? +page : 1;
+      limit = limit ? +limit : 10;
+      const data = await this.usersService.getCustomers(page, limit);
+      return {
+        data: data,
+        status: 'true',
+        message: 'Lấy danh sách người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Post('/admin/users')
+  async createUserByAdmin(@Body() dto: any) {
+    try {
+      const data = await this.usersService.createUserByAdmin(dto);
+      return {
+        data: data,
+        status: true,
+        message: 'Tạo người dùng thành công',
+      };
+    } catch (error) {
+      return {
+        data: {},
+        status: false,
+        message: 'Tạo người dùng thất bại',
+      };
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/admin/customers/count')
+  async getCustomersQuantity() {
+    try {
+      const data = await this.usersService.getCustomersQty();
+      return {
+        data: data,
+        status: 'true',
+        message: 'Lấy số lượng người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('/admin/customers/search')
+  async searchCustomers(
+    @Query('role') role: string,
+    @Query('keyword') keyword: string
+  ) {
+    try {
+      const data = await this.usersService.searchCustomers(role, keyword);
+      return {
+        data: data,
+        status: 'true',
+        message: 'Tìm kiếm danh sách người dùng thành công',
+      };
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   @MessagePattern('get_users_from_list_uid')
   async findByListUid(uidList: [string]) {
     const result = await this.usersService.findByListUid(uidList);
-
-    if (result.length > 0) {
+    if (result.length > 0)
       return {
         data: result,
         status: 'true',
         message: 'Lấy danh sách người dùng từ danh sách uid thành công',
       };
-    }
-
     return {
-      data: {},
+      data: [],
       status: 'false',
       message: 'Lấy danh sách người dùng từ danh sách uid thất bại',
     };
@@ -391,6 +448,25 @@ export class UsersController {
       data: {},
       status: 'false',
       message: 'Get Fcmtoken Failed',
+    };
+  }
+
+  @MessagePattern('get_uids_by_keyword')
+  async getUidsByKeyword(keyword: string) {
+    const result = await this.usersService.getUidsByKeyword(keyword);
+    const data = Object.values(result).map((value) => {
+      return value.uid;
+    });
+    if (data)
+      return {
+        data: data,
+        status: 'true',
+        message: 'Get Uids Successfully',
+      };
+    return {
+      data: {},
+      status: 'false',
+      message: 'Get Uids Failed',
     };
   }
 }

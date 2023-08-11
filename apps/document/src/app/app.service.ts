@@ -51,4 +51,20 @@ export class AppService {
       this.esignatureService.send('encrypt_password_ca', password)
     );
   }
+
+  async sendEmailNotification(
+    email: string,
+    subject: string,
+    content: string,
+    subjectContent: string
+  ) {
+    return await lastValueFrom(
+      this.backgroundService.send('send_email', {
+        email,
+        subject,
+        content,
+        subjectContent,
+      })
+    );
+  }
 }

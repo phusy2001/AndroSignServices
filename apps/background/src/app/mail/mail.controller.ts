@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { MessagePattern } from '@nestjs/microservices';
+import template from './mail.template';
 
 @Controller('emails')
 export class MailController {
@@ -24,7 +25,6 @@ export class MailController {
           HttpStatus.NOT_FOUND
         );
       }
-
       await this.mailerService.sendMail({
         to: email,
         subject: subject,
@@ -45,22 +45,21 @@ export class MailController {
     email: string;
     subject: string;
     content: string;
+    subjectContent: string;
   }) {
     try {
-      const { email, subject, content } = emailData;
-      if (!email || !subject || !content) {
+      const { email, subject, content, subjectContent } = emailData;
+      if (!email || !subject || !content || !subjectContent) {
         throw new HttpException(
           'Please provide email, subject, and content!',
           HttpStatus.NOT_FOUND
         );
       }
-
       await this.mailerService.sendMail({
         to: email,
         subject: subject,
-        html: content,
+        html: template(subjectContent, content),
       });
-
       return { statusCode: 200, message: 'Email sent successfully.' };
     } catch (error) {
       throw new HttpException(

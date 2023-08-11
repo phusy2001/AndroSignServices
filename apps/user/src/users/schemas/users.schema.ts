@@ -34,6 +34,9 @@ export class User {
   @Prop()
   password_ca: string;
 
+  @Prop({ default: true })
+  disabled: boolean;
+
   @Prop({ default: now() })
   created_at: Date;
 

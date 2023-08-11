@@ -2,9 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
 enum Status {
-  SUCCESS,
-  FAIL,
-  PROCESSING,
+  SUCCESS = 1,
+  FAIL = 2,
+  PROCESSING = 3,
 }
 
 @Schema()
@@ -34,6 +34,9 @@ export class Order {
   @Prop({ required: true })
   total_price: number;
 
+  @Prop()
+  expired_on: Date;
+
   @Prop({
     default: () => {
       return new Date();
@@ -47,6 +50,15 @@ export class Order {
     },
   })
   updated_at: Date;
+
+  @Prop()
+  user_name: string;
+
+  @Prop()
+  user_email: string;
+
+  @Prop()
+  plan_name: string;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

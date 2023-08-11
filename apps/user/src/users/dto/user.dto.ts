@@ -24,13 +24,9 @@ export class CreateUserDto {
   address: string;
 
   @Allow()
-  path_ca: string;
-
-  @Allow()
-  password_ca: string;
-
-  @Allow()
   role: Role;
+
+  disabled: boolean;
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {}

@@ -20,4 +20,8 @@ export class PlansService {
     const createdPlan = new this.planModel(createPlanDto);
     return createdPlan.save();
   }
+
+  async checkInitalPlan(plan_name: string, plan_type: string) {
+    return await this.planModel.findOne({ plan_name, plan_type });
+  }
 }

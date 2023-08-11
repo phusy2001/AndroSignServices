@@ -53,6 +53,12 @@ export class FolderService {
     });
   }
 
+  async getAllFileIdsInFolder(folderId: string) {
+    return await this.folderModel.findById(folderId, {
+      files: 1,
+    });
+  }
+
   async checkFileInFolder(fileId: string, folderId: string) {
     return await this.folderModel.exists({ _id: folderId, files: fileId });
   }
@@ -89,10 +95,9 @@ export class FolderService {
   }
 
   async findNameByUser(userId: string, name: string) {
-    return await this.folderModel.findOne(
-      { user: userId, name: name },
-      { name: 1 }
-    );
+    return await this.folderModel
+      .find({ user: userId, name: name }, { name: 1 })
+      .countDocuments();
   }
 
   async renameFolder(id: string, name: string) {
@@ -100,5 +105,15 @@ export class FolderService {
       name: name,
       updated_at: new Date(),
     });
+  }
+
+  async getTotalFolders(userId: string) {
+    return await this.folderModel.countDocuments({
+      user: userId,
+    });
+  }
+
+  async deleteDataOfUser(userId: string) {
+    return await this.folderModel.deleteMany({ user: userId });
   }
 }

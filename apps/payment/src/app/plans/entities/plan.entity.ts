@@ -24,6 +24,16 @@ export class Plan {
   plan_price: number;
 
   @Prop()
+  plan_price_view: number;
+
+  @Prop({
+    type: [
+      { unlimited_folder: { type: Number }, unlimited_files: { type: Number } },
+    ],
+  })
+  quotas: { unlimited_folder: number; unlimited_files: number }[];
+
+  @Prop()
   duration: number;
 
   @Prop({
