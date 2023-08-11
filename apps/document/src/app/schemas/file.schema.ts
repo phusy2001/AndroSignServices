@@ -46,6 +46,8 @@ export class File {
     },
   })
   updated_at: Date;
+  ext: string;
+  base64Content: string;
 }
 
 export const FileSchema = SchemaFactory.createForClass(File);

@@ -93,41 +93,22 @@ export class AppController {
     };
   }
 
-  // @MessagePattern('toPdf')
-  // async convertFile(fullName: string) {
-  //   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-  //   const result = await this.appService.convertFile(fullName);
-  //   process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
-  //   if (result.data.status)
-  //     return {
-  //       data: result.data.data,
-  //       status: 'true',
-  //       message: 'Converted',
-  //     };
-  //   return {
-  //     data: {},
-  //     status: 'false',
-  //     message: 'Signed PDF Failed',
-  //   };
-  // }
-
-  // @Post('toPdf')
-  @MessagePattern('toPdf')
-  @UseInterceptors(FileInterceptor('file'))
-  async convertFile(@UploadedFile() file: Express.Multer.File) {
+  @MessagePattern('to_pdf')
+  async convertFile(data: any) {
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
-    const result = await this.appService.convertFile(file);
+    const result = await this.appService.convertFile(data.name, data.content);
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
     if (result.data.status)
       return {
-        data: Buffer.from(result.data.data, 'base64'),
+        // data: Buffer.from(result.data.data, 'base64'),
+        data: result.data.data,
         status: 'true',
-        message: 'Converted',
+        message: 'Converted Successfully',
       };
     return {
       data: {},
       status: 'false',
-      message: 'Signed PDF Failed',
+      message: 'Converted Failed',
     };
   }
 }

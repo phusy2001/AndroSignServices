@@ -84,19 +84,17 @@ export class AppService {
     );
   }
 
-  async convertFile(file: Express.Multer.File): Promise<any> {
+  async convertFile(fileName: string, buffer: any): Promise<any> {
     return await lastValueFrom(
       this.httpService.request({
         url: this.convertMethod,
         method: 'POST',
         baseURL: this.certHost,
         data: {
-          fileName: file.originalname,
-          content: Buffer.from(file.buffer).toString('base64'),
+          fileName: fileName,
+          content: Buffer.from(buffer).toString('base64'),
         },
-        headers: {
-          'Content-Type': 'multipart/form-data;',
-        },
+        headers: { 'Content-Type': 'multipart/form-data' },
       })
     );
   }

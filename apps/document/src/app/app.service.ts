@@ -67,4 +67,13 @@ export class AppService {
       })
     );
   }
+
+  async convertToPDF(buffer: any, fileName: string) {
+    return await lastValueFrom(
+      this.esignatureService.send('to_pdf', {
+        content: buffer,
+        name: fileName,
+      })
+    );
+  }
 }

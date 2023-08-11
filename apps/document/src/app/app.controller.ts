@@ -35,17 +35,23 @@ export class AppController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(
     @Res() res,
-    @UploadedFile() pdfFile: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
     @Body() body: File
   ) {
-    // const count = await this.fileService.findNameByUser(body.user, body.name);
-    // const now = new Date();
-    // if (count > 0) body.name += `-${now.getTime()}`;
     const object = await this.fileService.create(body);
-    const result = await this.s3Service.upload(
-      pdfFile.buffer,
-      body.user + '/' + object._id + '.pdf'
-    );
+    let result;
+    if (body.ext !== 'pdf') {
+      const buffer = Buffer.from(body.base64Content, 'base64');
+      result = await this.s3Service.upload(
+        buffer,
+        body.user + '/' + object._id + '.pdf'
+      );
+    } else {
+      result = await this.s3Service.upload(
+        file.buffer,
+        body.user + '/' + object._id + '.pdf'
+      );
+    }
     if (result) {
       this.fileService.updatePathById(object._id, result.Location);
       this.fileService.updateFileHistory(object._id, body.user, 'create');
@@ -354,9 +360,6 @@ export class AppController {
 
   @Post('/createFolder')
   async createFolder(@Res() res, @Body() body) {
-    // const count = await this.folderService.findNameByUser(body.user, body.name);
-    // const now = new Date();
-    // if (count > 0) body.name += `-${now.getTime()}`;
     const result = await this.folderService.create(body);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -659,9 +662,6 @@ export class AppController {
 
   @Post('/renameFile')
   async renameFile(@Res() res, @UserId() userId, @Body() body) {
-    // const count = await this.fileService.findNameByUser(userId, body.name);
-    // const now = new Date();
-    // if (count > 0) body.name += `-${now.getTime()}`;
     const result = await this.fileService.renameFile(body.id, body.name);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -681,9 +681,6 @@ export class AppController {
 
   @Post('/renameFolder')
   async renameFolder(@Res() res, @UserId() userId, @Body() body) {
-    // const count = await this.folderService.findNameByUser(userId, body.name);
-    // const now = new Date();
-    // if (count > 0) body.name += `-${now.getTime()}`;
     const result = await this.folderService.renameFolder(body.id, body.name);
     if (result) {
       return res.status(HttpStatus.OK).json({
@@ -759,6 +756,16 @@ export class AppController {
       status: 'true',
       message: 'Lấy thống kê người dùng thành công',
     });
+  }
+
+  @Post('/convertFile')
+  @UseInterceptors(FileInterceptor('file'))
+  async convertFile(@Res() res, @UploadedFile() file: Express.Multer.File) {
+    const result = await this.appService.convertToPDF(
+      file.buffer,
+      file.originalname
+    );
+    return res.status(HttpStatus.OK).json(result);
   }
 }
 
