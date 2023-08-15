@@ -396,13 +396,6 @@ export class FileService {
     return await this.fileModel.findByIdAndUpdate(id, { xfdf: xfdf });
   }
 
-  async findNameByUser(userId: string, name: string) {
-    // const regexPattern = new RegExp(`^${name}\\(\\d+\\)$`);
-    return await this.fileModel
-      .find({ user: userId, name: name }, { name: 1 })
-      .countDocuments();
-  }
-
   async getTotalCount(completed: boolean, userId?: string) {
     if (userId) {
       if (completed)
