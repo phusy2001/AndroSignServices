@@ -95,8 +95,10 @@ export class AppController {
 
   @MessagePattern('to_pdf')
   async convertFile(data: any) {
+    console.log('Hello');
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
     const result = await this.appService.convertFile(data.name, data.content);
+    console.log(result);
     process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1';
     if (result.data.status)
       return {
